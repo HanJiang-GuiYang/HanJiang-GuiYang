@@ -9,7 +9,7 @@
     <!-- 引入 Chart.js 轻量图表库 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* 原有样式保持不变，新增地图导航样式 */
+        /* 原有样式保持不变（仅增加地图导航样式） */
         * {
             margin: 0;
             padding: 0;
@@ -887,11 +887,11 @@
                             <tr id="timeRow7"><td class="time-slot">第六节<br>14:55-15:40</td>
                                 <td class="editable" data-row="7" data-col="1">生物</td><td class="editable" data-row="7" data-col="2">化学</td><td class="editable" data-row="7" data-col="3">历史</td>
                                 <td class="editable" data-row="7" data-col="4">地理</td><td class="editable" data-row="7" data-col="5">体育</td><td class="editable" data-row="7" data-col="6">化学</td><td class="editable" data-row="7" data-col="7">-</td>
-                            </tr>
+                             </tr>
                             <tr id="timeRow8"><td class="time-slot">第七节<br>16:00-16:45</td>
                                 <td class="editable" data-row="8" data-col="1">历史</td><td class="editable" data-row="8" data-col="2">政治</td><td class="editable" data-row="8" data-col="3">地理</td>
                                 <td class="editable" data-row="8" data-col="4">体育</td><td class="editable" data-row="8" data-col="5">自习</td><td class="editable" data-row="8" data-col="6">生物</td><td class="editable" data-row="8" data-col="7">-</td>
-                            </tr>
+                             </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1112,7 +1112,7 @@
                 <div class="countdown">
                     <input type="text" class="countdown-input" id="countdown-title" placeholder="输入事件名称（如期末考试）">
                     <input type="date" class="countdown-input" id="countdown-date">
-                    <button class="countdown-btn" onclick="startCountdown()">开始倒计时</button>
+                    <button class="countdown-btn" id="startCountdownBtn">开始倒计时</button>
                     <div class="countdown-display" id="countdown-result">请设置倒计时事件</div>
                 </div>
             </div>
@@ -1209,8 +1209,9 @@
 
         // ---------- 错题本模块 ----------
         let currentMistakeFilter = "all";
-        let currentReviewMistake = null;
+        let currentReviewMistake = null; // 当前随机抽到的错题对象
 
+        // 获取所有错题
         function getMistakes() {
             let mistakes = localStorage.getItem("gyez_mistakes");
             return mistakes ? JSON.parse(mistakes) : [];
@@ -1219,6 +1220,7 @@
             localStorage.setItem("gyez_mistakes", JSON.stringify(mistakes));
         }
 
+        // 添加/编辑错题
         function saveMistake() {
             const id = document.getElementById("editMistakeId").value;
             const subject = document.getElementById("mistakeSubject").value;
@@ -1234,6 +1236,7 @@
 
             let mistakes = getMistakes();
             if (id) {
+                // 编辑模式
                 const index = mistakes.findIndex(m => m.id == id);
                 if (index !== -1) {
                     mistakes[index] = {
@@ -1243,6 +1246,7 @@
                     };
                 }
             } else {
+                // 新增
                 mistakes.push({
                     id: Date.now(),
                     subject, question, reason, answer, chapter,
@@ -1255,6 +1259,7 @@
             renderMistakeList();
         }
 
+        // 删除错题
         function deleteMistake(id) {
             if (confirm("确定删除这道错题吗？")) {
                 let mistakes = getMistakes();
@@ -1262,6 +1267,7 @@
                 saveMistakes(mistakes);
                 renderMistakeList();
                 if (currentReviewMistake && currentReviewMistake.id === id) {
+                    // 如果正在复习的被删除了，清空复习区域
                     document.getElementById("reviewContent").querySelector(".review-question").innerHTML = "";
                     document.getElementById("reviewContent").querySelector(".review-answer").innerHTML = "";
                     document.getElementById("showAnswerBtn").style.display = "none";
@@ -1270,6 +1276,7 @@
             }
         }
 
+        // 显示添加错题模态框
         function showAddMistakeModal() {
             document.getElementById("mistakeModalTitle").innerText = "添加错题";
             document.getElementById("editMistakeId").value = "";
@@ -1281,6 +1288,7 @@
             document.getElementById("mistakeModal").style.display = "flex";
         }
 
+        // 编辑错题
         function editMistake(id) {
             let mistakes = getMistakes();
             let mistake = mistakes.find(m => m.id === id);
@@ -1295,6 +1303,7 @@
             document.getElementById("mistakeModal").style.display = "flex";
         }
 
+        // 查看错题详情（弹窗）
         function viewMistakeDetail(id) {
             let mistakes = getMistakes();
             let mistake = mistakes.find(m => m.id === id);
@@ -1302,11 +1311,13 @@
             alert(`题目：${mistake.question}\n\n错误原因：${mistake.reason}\n\n正确答案：${mistake.answer}\n\n章节：${mistake.chapter || "无"}`);
         }
 
+        // 渲染错题列表
         function renderMistakeList() {
             let mistakes = getMistakes();
             if (currentMistakeFilter !== "all") {
                 mistakes = mistakes.filter(m => m.subject === currentMistakeFilter);
             }
+            // 按创建时间倒序
             mistakes.sort((a,b) => new Date(b.createTime) - new Date(a.createTime));
 
             const container = document.getElementById("mistakeList");
@@ -1332,11 +1343,13 @@
             });
         }
 
+        // 筛选错题
         function filterMistakes() {
             currentMistakeFilter = document.getElementById("mistakeSubjectFilter").value;
             renderMistakeList();
         }
 
+        // 随机抽题复习
         function randomReview() {
             let mistakes = getMistakes();
             if (mistakes.length === 0) {
@@ -1355,95 +1368,6 @@
         function showAnswer() {
             const answerDiv = document.getElementById("reviewContent").querySelector(".review-answer");
             answerDiv.classList.add("show");
-        }
-
-        // ---------- 校园地图导航模块 ----------
-        // 校园地标配置（根据实际图片调整 left/top 百分比）
-        const campusSpots = [
-            {
-                name: "教学楼",
-                description: "高中部主教学楼，共6层，设有普通教室、教师办公室。",
-                route: "从校门直走100米，右侧即为教学楼。",
-                left: "30%",
-                top: "35%"
-            },
-            {
-                name: "食堂",
-                description: "两层餐厅，提供早中晚餐，一层为快餐，二层为风味窗口。",
-                route: "教学楼后方直走，经过操场左侧即可到达。",
-                left: "65%",
-                top: "45%"
-            },
-            {
-                name: "图书馆",
-                description: "藏书3万册，设有自习室，开放时间 8:00-18:00。",
-                route: "操场东侧，与行政楼相邻。",
-                left: "20%",
-                top: "70%"
-            },
-            {
-                name: "操场",
-                description: "400米标准跑道，篮球场、足球场。",
-                route: "校园中央，教学楼正后方。",
-                left: "50%",
-                top: "55%"
-            },
-            {
-                name: "实验楼",
-                description: "物理、化学、生物实验室及多媒体教室。",
-                route: "教学楼西侧，与艺术楼相连。",
-                left: "40%",
-                top: "20%"
-            }
-        ];
-
-        function renderMapMarkers() {
-            const container = document.getElementById("mapMarkers");
-            if (!container) return;
-            container.innerHTML = "";
-            campusSpots.forEach((spot, index) => {
-                const marker = document.createElement("div");
-                marker.className = "map-marker";
-                marker.style.position = "absolute";
-                marker.style.left = spot.left;
-                marker.style.top = spot.top;
-                marker.style.width = "24px";
-                marker.style.height = "24px";
-                marker.style.backgroundColor = "#ff5722";
-                marker.style.borderRadius = "50%";
-                marker.style.border = "2px solid white";
-                marker.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
-                marker.style.cursor = "pointer";
-                marker.style.pointerEvents = "auto";
-                marker.style.zIndex = "10";
-                marker.style.transform = "translate(-50%, -50%)";
-                marker.style.display = "flex";
-                marker.style.alignItems = "center";
-                marker.style.justifyContent = "center";
-                marker.style.color = "white";
-                marker.style.fontWeight = "bold";
-                marker.style.fontSize = "12px";
-                marker.textContent = index + 1;
-                marker.title = spot.name;
-                marker.onclick = () => showSpotInfo(spot);
-                container.appendChild(marker);
-            });
-        }
-
-        function showSpotInfo(spot) {
-            const infoDiv = document.getElementById("mapInfo");
-            if (infoDiv) {
-                infoDiv.innerHTML = `
-                    <strong>📍 ${spot.name}</strong><br>
-                    ${spot.description}<br>
-                    <span style="color:#005aa7;">🚶 路线指引：</span> ${spot.route}
-                `;
-            }
-        }
-
-        function resetMapInfo() {
-            const infoDiv = document.getElementById("mapInfo");
-            if (infoDiv) infoDiv.innerHTML = "点击标注点查看详情";
         }
 
         // ---------- 原有成绩管理模块 ----------
@@ -1564,7 +1488,7 @@
             });
         }
 
-        // ---------- 原有其他功能 ----------
+        // ---------- 原有其他功能（保留） ----------
         function calculateAverageScore() {
             let scores = [], total = 0;
             for (let i=1;i<=8;i++) {
@@ -1641,23 +1565,46 @@
             let rand = Math.floor(Math.random() * (max - min + 1)) + min;
             document.getElementById('rollResult').textContent = `🎉 被点到：${rand} 号`;
         }
+
+        // ---------- 倒计时模块（修复版） ----------
+        let countdownInterval = null; // 全局计时器变量
         function startCountdown() {
-            let title = escapeHtml(document.getElementById('countdown-title').value.trim()) || '目标事件';
-            let targetDate = new Date(document.getElementById('countdown-date').value);
-            if (isNaN(targetDate.getTime())) { document.getElementById('countdown-result').textContent = '请选择有效的日期'; return; }
-            if (countdownInterval) clearInterval(countdownInterval);
-            function update() {
-                let diff = targetDate - new Date();
-                if (diff <= 0) { document.getElementById('countdown-result').textContent = `${title} 已结束！`; clearInterval(countdownInterval); return; }
-                let days = Math.floor(diff/(1000*60*60*24));
-                let hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-                let mins = Math.floor((diff%(1000*60*60))/(1000*60));
-                let secs = Math.floor((diff%(1000*60))/1000);
-                document.getElementById('countdown-result').textContent = `${title} 还有：${days}天 ${hours}时 ${mins}分 ${secs}秒`;
+            // 获取输入值
+            let title = document.getElementById('countdown-title').value.trim();
+            let dateStr = document.getElementById('countdown-date').value;
+            if (!title) title = "目标事件";
+            if (!dateStr) {
+                document.getElementById('countdown-result').textContent = '请选择日期';
+                return;
             }
-            update();
-            countdownInterval = setInterval(update, 1000);
+            let targetDate = new Date(dateStr);
+            if (isNaN(targetDate.getTime())) {
+                document.getElementById('countdown-result').textContent = '日期无效';
+                return;
+            }
+            // 清除之前的计时器
+            if (countdownInterval) clearInterval(countdownInterval);
+            // 更新显示函数
+            function updateDisplay() {
+                let now = new Date();
+                let diff = targetDate - now;
+                if (diff <= 0) {
+                    document.getElementById('countdown-result').textContent = `${escapeHtml(title)} 已结束！`;
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    return;
+                }
+                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                document.getElementById('countdown-result').textContent = `${escapeHtml(title)} 还有：${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+            }
+            updateDisplay();
+            countdownInterval = setInterval(updateDisplay, 1000);
         }
+
+        // ---------- 其他原有函数 ----------
         function fetchWeather() {
             const defaultLat = 26.65, defaultLon = 106.63;
             if (navigator.geolocation) {
@@ -1812,7 +1759,7 @@
             alert('新时间段已添加！');
         }
 
-        // 分贝检测相关函数（简化）
+        // 分贝检测相关函数（简化示例，实际使用需完善）
         let isDetecting = false, mediaStream = null, audioContext, analyser, detectionInterval;
         function createVisualizerBars() { /* 占位 */ }
         function updateVisualizer(v) { /* 占位 */ }
@@ -1850,7 +1797,7 @@
             document.getElementById('stopDecibelBtn').disabled = true;
         }
 
-        // 知识点数据库（完整版）
+        // 知识点数据库（完整版，仅保留必要结构，实际完整内容已在原代码中，此处为了代码简洁仅占位）
         const knowledgeDatabase = {
             chinese: { name: '语文', chapters: [{ id: 'ch1', name: '必修一 - 现代文阅读', content: '<h4>现代文阅读技巧</h4><ul><li><strong>理解文中重要词语的含义</strong><br>词语在语境中的特定含义，包括指代义、比喻义、隐含义等。需结合上下文推断。</li></ul>' }] },
             math: { name: '数学', chapters: [{ id: 'm1', name: '必修一 - 集合与函数', content: '<h4>集合与函数</h4><ul><li><strong>集合的基本概念与运算</strong><br>集合是由一些确定的对象组成的整体。</li></ul>' }] },
@@ -1880,6 +1827,57 @@
             if (!subject || !chapterId) { knowledgeContent.innerHTML = '请选择学科和章节'; return; }
             const ch = knowledgeDatabase[subject]?.chapters.find(c => c.id === chapterId);
             knowledgeContent.innerHTML = ch ? ch.content : '暂无该章节知识点';
+        }
+
+        // 校园地图导航模块
+        const campusSpots = [
+            { name: "教学楼", description: "高中部主教学楼，共6层，设有普通教室、教师办公室。", route: "从校门直走100米，右侧即为教学楼。", left: "30%", top: "35%" },
+            { name: "食堂", description: "两层餐厅，提供早中晚餐，一层为快餐，二层为风味窗口。", route: "教学楼后方直走，经过操场左侧即可到达。", left: "65%", top: "45%" },
+            { name: "图书馆", description: "藏书3万册，设有自习室，开放时间 8:00-18:00。", route: "操场东侧，与行政楼相邻。", left: "20%", top: "70%" },
+            { name: "操场", description: "400米标准跑道，篮球场、足球场。", route: "校园中央，教学楼正后方。", left: "50%", top: "55%" },
+            { name: "实验楼", description: "物理、化学、生物实验室及多媒体教室。", route: "教学楼西侧，与艺术楼相连。", left: "40%", top: "20%" }
+        ];
+        function renderMapMarkers() {
+            const container = document.getElementById("mapMarkers");
+            if (!container) return;
+            container.innerHTML = "";
+            campusSpots.forEach((spot, index) => {
+                const marker = document.createElement("div");
+                marker.className = "map-marker";
+                marker.style.position = "absolute";
+                marker.style.left = spot.left;
+                marker.style.top = spot.top;
+                marker.style.width = "24px";
+                marker.style.height = "24px";
+                marker.style.backgroundColor = "#ff5722";
+                marker.style.borderRadius = "50%";
+                marker.style.border = "2px solid white";
+                marker.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+                marker.style.cursor = "pointer";
+                marker.style.pointerEvents = "auto";
+                marker.style.zIndex = "10";
+                marker.style.transform = "translate(-50%, -50%)";
+                marker.style.display = "flex";
+                marker.style.alignItems = "center";
+                marker.style.justifyContent = "center";
+                marker.style.color = "white";
+                marker.style.fontWeight = "bold";
+                marker.style.fontSize = "12px";
+                marker.textContent = index + 1;
+                marker.title = spot.name;
+                marker.onclick = () => showSpotInfo(spot);
+                container.appendChild(marker);
+            });
+        }
+        function showSpotInfo(spot) {
+            const infoDiv = document.getElementById("mapInfo");
+            if (infoDiv) {
+                infoDiv.innerHTML = `<strong>📍 ${spot.name}</strong><br>${spot.description}<br><span style="color:#005aa7;">🚶 路线指引：</span> ${spot.route}`;
+            }
+        }
+        function resetMapInfo() {
+            const infoDiv = document.getElementById("mapInfo");
+            if (infoDiv) infoDiv.innerHTML = "点击标注点查看详情";
         }
 
         // DOMContentLoaded 初始化
@@ -2021,6 +2019,10 @@
 
             // 校园地图初始化
             renderMapMarkers();
+
+            // 倒计时按钮事件绑定
+            const countdownBtn = document.getElementById('startCountdownBtn');
+            if (countdownBtn) countdownBtn.addEventListener('click', startCountdown);
         });
     </script>
 </body>
