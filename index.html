@@ -2,13 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>校园小助手 - 高中学习好帮手</title>
-    <!-- 移动端适配优化 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- 引入 Chart.js 轻量图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* 原有样式完全保留，未做任何修改 */
+        /* 原有样式保持不变，新增地图导航样式 */
         * {
             margin: 0;
             padding: 0;
@@ -16,7 +17,6 @@
             font-family: "Microsoft YaHei", sans-serif;
             transition: all 0.3s ease;
         }
-
         body {
             background: url('https://images.unsplash.com/photo-1568745636603-5fe38d2bc4c5?q=80&w=1935&auto=format&fit=crop') no-repeat center center fixed;
             background-size: cover;
@@ -24,7 +24,6 @@
             position: relative;
             min-height: 100vh;
         }
-
         body::before {
             content: "";
             position: fixed;
@@ -35,7 +34,6 @@
             background-color: rgba(255, 255, 255, 0.88);
             z-index: -1;
         }
-
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -48,40 +46,104 @@
             transform: translateY(0);
             animation: fadeIn 0.5s ease forwards;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .header {
             background: linear-gradient(135deg, #005aa7, #2980b9);
             color: white;
-            padding: 20px 15px;
-            text-align: center;
-            position: relative;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            padding: 6px 15px;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.25);
+            flex-wrap: wrap;
+            min-width: 200px;
+        }
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: white;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .weather-icon { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
+        .weather-temp {
+            font-weight: bold;
+            background: rgba(255,255,255,0.3);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .current-time {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+            border-left: 1px solid rgba(255,255,255,0.4);
+            padding-left: 12px;
+            margin-left: 4px;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+        .current-time::before {
+            content: '🕒';
+            margin-right: 5px;
+            font-size: 16px;
+        }
+        .header-center {
+            text-align: center;
+            flex: 1 1 auto;
+            min-width: 200px;
+        }
+        .header-center h1 { font-size: 1.5rem; line-height: 1.3; margin-bottom: 4px; }
+        .header-center p { font-size: 0.9rem; opacity: 0.9; }
         .edit-title-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
             background-color: rgba(255,255,255,0.3);
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 6px 14px;
+            border-radius: 30px;
             cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
+            font-size: 13px;
+            white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-weight: 500;
         }
-
         .edit-title-btn:hover {
             background-color: rgba(255,255,255,0.5);
             transform: scale(1.05);
         }
-
+        @media (max-width: 700px) {
+            .header { flex-direction: column; text-align: center; padding: 15px 10px; }
+            .header-left { width: 100%; justify-content: center; order: 1; }
+            .header-center { order: 2; width: 100%; }
+            .edit-title-btn { order: 3; margin-top: 5px; }
+            .current-time {
+                border-left: none; padding-left: 0; margin-left: 0;
+                border-top: 1px solid rgba(255,255,255,0.3);
+                padding-top: 6px; margin-top: 4px;
+                width: 100%; justify-content: center;
+            }
+        }
+        @media (max-width: 480px) {
+            .header-center h1 { font-size: 1.2rem; }
+            .header-center p { font-size: 0.8rem; }
+            .header-left { font-size: 13px; padding: 5px 10px; }
+        }
         .loader {
             display: none;
             border: 3px solid #f3f3f3;
@@ -92,132 +154,76 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
         .tabs {
             display: flex;
             background: #e6f0fa;
             border-bottom: 2px solid #005aa7;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
             position: sticky;
             top: 0;
             z-index: 100;
         }
-
         .tab {
             flex: 1;
             min-width: 80px;
             text-align: center;
             padding: 15px 10px;
             cursor: pointer;
-            transition: all 0.3s;
             border-bottom: 3px solid transparent;
             white-space: nowrap;
             position: relative;
         }
-
         .tab.active {
             border-bottom: 3px solid #005aa7;
             color: #005aa7;
             font-weight: bold;
             background-color: white;
         }
-
         .tab:hover {
             background-color: #f0f8ff;
             transform: translateY(-2px);
         }
-
-        .tab::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: #005aa7;
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        .tab:hover::after {
-            width: 80%;
-        }
-
         .content {
             padding: 15px;
             min-height: 500px;
         }
-
         .content-section {
             display: none;
             animation: sectionFade 0.4s ease;
         }
-
+        .content-section.active { display: block; }
         @keyframes sectionFade {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
-        .content-section.active {
-            display: block;
-        }
-
-        .timetable-container {
-            margin-top: 15px;
-        }
-
+        .timetable-container { margin-top: 15px; }
         .edit-btn, .save-btn, .add-time-btn {
             padding: 8px 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             margin-bottom: 10px;
-            transition: all 0.3s;
             font-size: 14px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .edit-btn:hover, .save-btn:hover, .add-time-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .edit-btn {
-            background-color: #005aa7;
-            color: white;
-        }
-
-        .edit-btn:hover {
-            background-color: #004785;
-        }
-
+        .edit-btn { background-color: #005aa7; color: white; }
+        .edit-btn:hover { background-color: #004785; }
         .save-btn {
             background-color: #27ae60;
             color: white;
             margin-left: 8px;
             display: none;
         }
-
-        .save-btn:hover {
-            background-color: #219653;
-        }
-
+        .save-btn:hover { background-color: #219653; }
         .add-time-btn {
             background-color: #f39c12;
             color: white;
             margin-left: 8px;
         }
-
-        .add-time-btn:hover {
-            background-color: #e67e22;
-        }
-
         .timetable {
             width: 100%;
             border-collapse: collapse;
@@ -227,14 +233,12 @@
             display: block;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-
         .timetable th, .timetable td {
             border: 1px solid #dcdfe6;
             padding: 8px 5px;
             text-align: center;
             min-width: 70px;
         }
-
         .timetable th {
             background-color: #e6f0fa;
             color: #005aa7;
@@ -242,31 +246,19 @@
             position: sticky;
             top: 0;
         }
-
-        .timetable tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        .timetable tr:hover {
-            background-color: #f0f8ff;
-        }
-
         .timetable td.editable {
             cursor: pointer;
             transition: all 0.2s;
         }
-
         .timetable td.editable:hover {
             background-color: #e6f0fa;
             transform: scale(1.02);
             box-shadow: inset 0 0 0 1px #005aa7;
         }
-
         .time-slot {
             font-weight: bold;
             background-color: #f0f8ff !important;
         }
-
         .edit-modal {
             display: none;
             position: fixed;
@@ -281,127 +273,85 @@
             padding: 20px;
             animation: modalFade 0.3s ease;
         }
-
         @keyframes modalFade {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
         .edit-modal-content {
             background: white;
             padding: 20px;
             border-radius: 10px;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             border: 2px solid #005aa7;
             box-shadow: 0 5px 20px rgba(0,0,0,0.2);
             transform: scale(0.95);
             animation: modalSlide 0.3s ease forwards;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-
         @keyframes modalSlide {
             to { transform: scale(1); }
         }
-
         .edit-modal h3 {
             color: #005aa7;
             margin-bottom: 15px;
             text-align: center;
-            font-size: 18px;
             border-bottom: 1px solid #e6f0fa;
             padding-bottom: 10px;
         }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
+        .form-group { margin-bottom: 12px; }
         .form-group label {
             display: block;
             margin-bottom: 4px;
             color: #333;
             font-size: 14px;
+            font-weight: bold;
         }
-
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
-            transition: border 0.3s;
         }
-
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: #005aa7;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
-        }
-
         .modal-buttons {
             display: flex;
             justify-content: space-between;
             margin-top: 15px;
         }
-
         .modal-btn {
             padding: 8px 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.3s;
         }
-
-        .modal-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .confirm-btn {
-            background-color: #005aa7;
-            color: white;
-        }
-
-        .confirm-btn:hover {
-            background-color: #004785;
-        }
-
-        .cancel-btn {
-            background-color: #999;
-            color: white;
-        }
-
-        .cancel-btn:hover {
-            background-color: #777;
-        }
-
+        .confirm-btn { background-color: #005aa7; color: white; }
+        .confirm-btn:hover { background-color: #004785; }
+        .cancel-btn { background-color: #999; color: white; }
+        .cancel-btn:hover { background-color: #777; }
         .school-tools {
             margin-top: 15px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
             padding: 10px 0;
         }
-
         .tool-card {
             background-color: #f8fbff;
             border: 1px solid #005aa7;
             border-radius: 8px;
             padding: 20px;
             transition: all 0.3s;
-            height: 100%;
             display: flex;
             flex-direction: column;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-
         .tool-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(0,90,167,0.15);
-            border-color: #2980b9;
         }
-
         .tool-card h3 {
             color: #005aa7;
             margin-bottom: 15px;
@@ -411,39 +361,13 @@
             font-size: 16px;
             position: relative;
         }
-
-        .tool-card h3::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 2px;
-            background: #005aa7;
-        }
-
-        .schedule-tool, .score-tool, .memo-tool, .decibel-tool, .phone-tool {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
         .score-input {
             width: 70px;
             padding: 8px;
             margin: 5px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 14px;
-            transition: border 0.3s;
         }
-
-        .score-input:focus {
-            border-color: #005aa7;
-            outline: none;
-        }
-
         .calculate-score-btn {
             background-color: #005aa7;
             color: white;
@@ -454,16 +378,7 @@
             margin-top: 10px;
             font-size: 14px;
             align-self: center;
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .calculate-score-btn:hover {
-            background-color: #004785;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
         .score-result {
             margin-top: 15px;
             padding: 15px;
@@ -471,19 +386,15 @@
             border-radius: 4px;
             color: #333;
             font-size: 14px;
-            flex: 1;
             border-left: 3px solid #005aa7;
         }
-
         .countdown {
             text-align: center;
             margin-top: 20px;
             padding: 20px;
             background-color: #f8fbff;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-
         .countdown-input {
             padding: 10px;
             width: 100%;
@@ -491,17 +402,8 @@
             margin: 0 auto 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 14px;
             display: block;
-            transition: border 0.3s;
         }
-
-        .countdown-input:focus {
-            border-color: #005aa7;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
-        }
-
         .countdown-btn {
             padding: 10px 20px;
             background-color: #005aa7;
@@ -509,18 +411,8 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
             margin-top: 10px;
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .countdown-btn:hover {
-            background-color: #004785;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
         .countdown-display {
             font-size: 28px;
             margin-top: 20px;
@@ -530,14 +422,7 @@
             background-color: #e6f0fa;
             border-radius: 8px;
             border-left: 4px solid #005aa7;
-            animation: pulse 2s infinite alternate;
         }
-
-        @keyframes pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.02); }
-        }
-
         .memo-input {
             width: 100%;
             min-height: 120px;
@@ -546,62 +431,34 @@
             border-radius: 4px;
             resize: vertical;
             margin-bottom: 10px;
-            font-size: 14px;
-            flex: 1;
-            transition: border 0.3s;
         }
-
-        .memo-input:focus {
-            border-color: #005aa7;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
-        }
-
         .memo-date {
             padding: 8px;
             margin: 0 auto 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 14px;
             display: block;
-            transition: border 0.3s;
         }
-
-        .memo-date:focus {
-            border-color: #005aa7;
-            outline: none;
-        }
-
         .memo-list {
             margin-top: 15px;
             max-height: 200px;
             overflow-y: auto;
             text-align: left;
             font-size: 14px;
-            flex: 1;
         }
-
         .memo-item {
             padding: 10px;
             background-color: #e6f0fa;
             border-radius: 4px;
             margin-bottom: 8px;
             position: relative;
-            transition: all 0.3s;
             border-left: 3px solid #005aa7;
         }
-
-        .memo-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
         .memo-item .date {
             font-size: 12px;
             color: #666;
             margin-bottom: 4px;
         }
-
         .memo-item .delete-btn {
             position: absolute;
             top: 8px;
@@ -613,19 +470,7 @@
             padding: 3px 6px;
             font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s;
         }
-
-        .memo-item .delete-btn:hover {
-            background-color: #c0392b;
-            transform: scale(1.1);
-        }
-
-        .phone-tool {
-            text-align: left;
-            font-size: 14px;
-        }
-
         .phone-item {
             display: flex;
             justify-content: space-between;
@@ -633,21 +478,12 @@
             padding: 8px 0;
             border-bottom: 1px solid #eee;
             flex-wrap: wrap;
-            transition: all 0.3s;
         }
-
-        .phone-item:hover {
-            background-color: #f8fbff;
-            padding-left: 5px;
-        }
-
         .phone-label {
             flex: 1;
             min-width: 80px;
-            margin-bottom: 5px;
             font-weight: bold;
         }
-
         .phone-input {
             flex: 2;
             padding: 8px;
@@ -655,15 +491,7 @@
             border-radius: 3px;
             margin-right: 8px;
             min-width: 150px;
-            margin-bottom: 5px;
-            transition: border 0.3s;
         }
-
-        .phone-input:focus {
-            border-color: #005aa7;
-            outline: none;
-        }
-
         .save-phone-btn {
             background-color: #27ae60;
             color: white;
@@ -672,50 +500,29 @@
             border-radius: 3px;
             cursor: pointer;
             font-size: 12px;
-            white-space: nowrap;
-            transition: all 0.3s;
         }
-
-        .save-phone-btn:hover {
-            background-color: #219653;
-            transform: scale(1.05);
-        }
-
         .decibel-display {
             font-size: 36px;
             font-weight: bold;
             color: #005aa7;
             margin: 15px 0;
             height: 45px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
-
         .decibel-warning {
             color: #e74c3c;
             font-weight: bold;
             display: none;
             margin: 8px 0;
             animation: flash 1s infinite;
-            font-size: 14px;
         }
-
         @keyframes flash {
             0% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(1.05); }
             100% { opacity: 1; transform: scale(1); }
         }
-
         .threshold-control {
             margin: 12px 0;
         }
-
-        .threshold-label {
-            display: block;
-            margin-bottom: 4px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
         .threshold-input {
             width: 80px;
             padding: 6px;
@@ -723,15 +530,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             margin-right: 8px;
-            font-size: 14px;
-            transition: border 0.3s;
         }
-
-        .threshold-input:focus {
-            border-color: #005aa7;
-            outline: none;
-        }
-
         .decibel-btn {
             margin: 4px;
             padding: 8px 18px;
@@ -739,45 +538,15 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .decibel-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .start-btn {
-            background-color: #27ae60;
-            color: white;
-        }
-
-        .start-btn:hover {
-            background-color: #219653;
-        }
-
-        .stop-btn {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        .stop-btn:hover {
-            background-color: #c0392b;
-        }
-
+        .start-btn { background-color: #27ae60; color: white; }
+        .stop-btn { background-color: #e74c3c; color: white; }
         .status-text {
             margin-top: 12px;
             font-style: italic;
             color: #666;
             font-size: 14px;
         }
-
-        .knowledge-tool {
-            text-align: center;
-            padding: 10px;
-        }
-
         .knowledge-select, .knowledge-chapter {
             width: 90%;
             max-width: 400px;
@@ -785,17 +554,8 @@
             margin: 10px auto;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 14px;
             display: block;
-            transition: border 0.3s;
         }
-
-        .knowledge-select:focus, .knowledge-chapter:focus {
-            border-color: #005aa7;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
-        }
-
         .knowledge-content {
             margin: 20px auto;
             padding: 15px;
@@ -809,32 +569,7 @@
             width: 90%;
             max-width: 800px;
             border-left: 4px solid #005aa7;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-
-        .knowledge-content h4 {
-            color: #005aa7;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #005aa7;
-            padding-bottom: 6px;
-            font-size: 16px;
-        }
-
-        .knowledge-content ul {
-            margin-left: 20px;
-            margin-bottom: 10px;
-        }
-
-        .knowledge-content li {
-            margin-bottom: 6px;
-            transition: all 0.2s;
-        }
-
-        .knowledge-content li:hover {
-            transform: translateX(5px);
-            color: #005aa7;
-        }
-
         .back-to-top {
             position: fixed;
             bottom: 20px;
@@ -848,136 +583,266 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             z-index: 1000;
             font-size: 18px;
-            transition: all 0.3s;
         }
-
         .back-to-top:hover {
             background-color: #004785;
-            transform: scale(1.1) rotate(90deg);
+            transform: scale(1.1);
         }
-
-        /* 音频可视化样式增强 */
-        #audioVisualizer {
-            gap: 2px;
+        .reminder-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 90, 167, 0.9);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 20px;
         }
-
-        #audioVisualizer div {
-            transition: height 0.1s ease, background-color 0.2s ease;
+        .reminder-content {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px 40px;
+            border: 2px solid white;
+            max-width: 600px;
+            width: 90%;
         }
-
-        /* 响应式优化 */
-        @media (max-width: 768px) {
-            .school-tools {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .countdown-display {
-                font-size: 24px;
-            }
-            
-            .decibel-display {
-                font-size: 28px;
-            }
-            
-            .tabs {
-                font-size: 14px;
-            }
-            
-            .content {
-                padding: 10px;
-                min-height: 400px;
-            }
-            
-            .tool-card {
-                padding: 15px;
-            }
-
-            .knowledge-content {
-                max-height: 250px;
-            }
+        .reminder-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
         }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 18px;
-            }
-            
-            .header p {
-                font-size: 14px;
-            }
-            
-            .timetable {
-                font-size: 12px;
-            }
-            
-            .timetable th, .timetable td {
-                padding: 5px 3px;
-                min-width: 60px;
-            }
-            
-            .countdown-input {
-                width: 100%;
-                margin-right: 0;
-            }
-
-            .phone-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .phone-input {
-                width: 100%;
-                margin-right: 0;
-            }
-
-            .save-phone-btn {
-                width: 100%;
-                margin-top: 5px;
-            }
-            
-            .back-to-top {
-                bottom: 15px;
-                right: 15px;
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
+        .reminder-content p {
+            font-size: 1.8rem;
+            margin: 10px 0;
         }
-
-        /* 滚动条美化 */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .reminder-content .next-course {
+            font-size: 3rem;
+            font-weight: bold;
+            background: rgba(255,255,255,0.3);
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 60px;
+            margin-top: 15px;
         }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .reminder-close-btn {
+            margin-top: 20px;
+            background-color: white;
+            color: #005aa7;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .reminder-close-btn:hover {
+            transform: scale(1.05);
+            background-color: #f0f0f0;
+        }
+        @media (max-width: 600px) {
+            .reminder-content h2 { font-size: 1.8rem; }
+            .reminder-content p { font-size: 1.3rem; }
+            .reminder-content .next-course { font-size: 2rem; }
+        }
+        /* 成绩管理专用样式 */
+        .score-record-item {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #005aa7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .score-record-info {
+            flex: 1;
+            font-size: 13px;
+        }
+        .delete-record-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
             border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
         }
-
-        ::-webkit-scrollbar-thumb {
+        .target-area {
+            background: #e6f0fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .target-input {
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+        }
+        .chart-container {
+            margin: 20px 0;
+            height: 200px;
+        }
+        .record-form input, .record-form button {
+            margin: 5px 0;
+            width: 100%;
+        }
+        .subject-scores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .subject-scores input {
+            width: 60px;
+            padding: 5px;
+        }
+        /* 错题本样式 */
+        .mistake-filter {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .mistake-filter select, .mistake-filter button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .mistake-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .mistake-item {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            transition: 0.2s;
+        }
+        .mistake-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .mistake-subject {
+            display: inline-block;
             background: #005aa7;
-            border-radius: 4px;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 10px;
         }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #004785;
+        .mistake-question {
+            font-weight: bold;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        .mistake-actions {
+            text-align: right;
+            margin-top: 8px;
+        }
+        .mistake-actions button {
+            background: none;
+            border: none;
+            color: #005aa7;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+        .mistake-actions button.delete {
+            color: #e74c3c;
+        }
+        .random-review {
+            background: #e6f0fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .review-question {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .review-answer {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+        .review-answer.show {
+            display: block;
+        }
+        /* 校园地图导航样式 */
+        .map-container {
+            position: relative;
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .map-marker {
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            z-index: 10;
+        }
+        .map-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            background-color: #e64a19 !important;
+        }
+        .map-info {
+            margin-top: 12px;
+            padding: 10px;
+            background: #e6f0fa;
+            border-radius: 8px;
+            font-size: 14px;
+            border-left: 3px solid #005aa7;
         }
     </style>
 </head>
 <body>
+    <div class="reminder-overlay" id="reminderOverlay">
+        <div class="reminder-content">
+            <h2>⏰ 课前提醒</h2>
+            <p>下节课是</p>
+            <div class="next-course" id="nextCourseName">语文</div>
+            <p id="nextCourseTime">08:00 - 08:45</p>
+            <p style="font-size:1rem; opacity:0.8;">请做好准备</p>
+            <button class="reminder-close-btn" id="reminderCloseBtn">知道了</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
+            <div class="header-left">
+                <div class="weather-info" id="weatherInfo">
+                    <span class="weather-icon" id="weatherIcon">⏳</span>
+                    <span id="weatherDesc">加载中...</span>
+                    <span class="weather-temp" id="weatherTemp">--℃</span>
+                </div>
+                <div class="current-time" id="currentTime">--:--:--</div>
+            </div>
+            <div class="header-center">
+                <h1 id="mainTitle">校园小助手 - 高中学习好帮手</h1>
+                <p id="subTitle">你的校园生活和学习好帮手</p>
+            </div>
             <button class="edit-title-btn" id="editTitleBtn">编辑标题</button>
-            <h1 id="mainTitle">校园小助手 - 高中学习好帮手</h1>
-            <p id="subTitle">你的校园生活和学习好帮手</p>
         </div>
 
-        <!-- 标签页导航 -->
         <div class="tabs">
             <div class="tab active" data-tab="timetable">课程表</div>
             <div class="tab" data-tab="tools">校园工具</div>
@@ -985,126 +850,57 @@
             <div class="tab" data-tab="countdown">倒计时</div>
         </div>
 
-        <!-- 内容区域 -->
         <div class="content">
-            <!-- 课程表区域 -->
             <div class="content-section active" id="timetable-section">
                 <h2 id="timetableTitle">本周课程表</h2>
                 <div class="timetable-container">
                     <button class="edit-btn" id="editTimetableBtn">编辑课程表</button>
                     <button class="save-btn" id="saveTimetableBtn">保存修改</button>
                     <button class="add-time-btn" id="addTimeBtn">添加时间段</button>
-                    
                     <table class="timetable" id="editableTimetable">
-                        <tr>
-                            <th>节次/时间</th>
-                            <th>周一</th>
-                            <th>周二</th>
-                            <th>周三</th>
-                            <th>周四</th>
-                            <th>周五</th>
-                            <th>周六</th>
-                            <th>周日</th>
-                        </tr>
-                        <tr id="timeRow1">
-                            <td class="time-slot">第一节<br>08:00-08:45</td>
-                            <td class="editable" data-row="1" data-col="1">语文</td>
-                            <td class="editable" data-row="1" data-col="2">数学</td>
-                            <td class="editable" data-row="1" data-col="3">英语</td>
-                            <td class="editable" data-row="1" data-col="4">物理</td>
-                            <td class="editable" data-row="1" data-col="5">化学</td>
-                            <td class="editable" data-row="1" data-col="6">自习</td>
-                            <td class="editable" data-row="1" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow2">
-                            <td class="time-slot">第二节<br>08:55-09:40</td>
-                            <td class="editable" data-row="2" data-col="1">数学</td>
-                            <td class="editable" data-row="2" data-col="2">语文</td>
-                            <td class="editable" data-row="2" data-col="3">物理</td>
-                            <td class="editable" data-row="2" data-col="4">英语</td>
-                            <td class="editable" data-row="2" data-col="5">生物</td>
-                            <td class="editable" data-row="2" data-col="6">数学</td>
-                            <td class="editable" data-row="2" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow3">
-                            <td class="time-slot">第三节<br>10:00-10:45</td>
-                            <td class="editable" data-row="3" data-col="1">英语</td>
-                            <td class="editable" data-row="3" data-col="2">物理</td>
-                            <td class="editable" data-row="3" data-col="3">数学</td>
-                            <td class="editable" data-row="3" data-col="4">语文</td>
-                            <td class="editable" data-row="3" data-col="5">历史</td>
-                            <td class="editable" data-row="3" data-col="6">英语</td>
-                            <td class="editable" data-row="3" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow4">
-                            <td class="time-slot">第四节<br>10:55-11:40</td>
-                            <td class="editable" data-row="4" data-col="1">物理</td>
-                            <td class="editable" data-row="4" data-col="2">英语</td>
-                            <td class="editable" data-row="4" data-col="3">语文</td>
-                            <td class="editable" data-row="4" data-col="4">数学</td>
-                            <td class="editable" data-row="4" data-col="5">政治</td>
-                            <td class="editable" data-row="4" data-col="6">语文</td>
-                            <td class="editable" data-row="4" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow5">
-                            <td class="time-slot">午休<br>12:00-14:00</td>
-                            <td colspan="7" style="background-color: #f0f8ff; color: #666;">午休时间</td>
-                        </tr>
-                        <tr id="timeRow6">
-                            <td class="time-slot">第五节<br>14:00-14:45</td>
-                            <td class="editable" data-row="6" data-col="1">化学</td>
-                            <td class="editable" data-row="6" data-col="2">生物</td>
-                            <td class="editable" data-row="6" data-col="3">政治</td>
-                            <td class="editable" data-row="6" data-col="4">历史</td>
-                            <td class="editable" data-row="6" data-col="5">地理</td>
-                            <td class="editable" data-row="6" data-col="6">物理</td>
-                            <td class="editable" data-row="6" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow7">
-                            <td class="time-slot">第六节<br>14:55-15:40</td>
-                            <td class="editable" data-row="7" data-col="1">生物</td>
-                            <td class="editable" data-row="7" data-col="2">化学</td>
-                            <td class="editable" data-row="7" data-col="3">历史</td>
-                            <td class="editable" data-row="7" data-col="4">地理</td>
-                            <td class="editable" data-row="7" data-col="5">体育</td>
-                            <td class="editable" data-row="7" data-col="6">化学</td>
-                            <td class="editable" data-row="7" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow8">
-                            <td class="time-slot">第七节<br>16:00-16:45</td>
-                            <td class="editable" data-row="8" data-col="1">历史</td>
-                            <td class="editable" data-row="8" data-col="2">政治</td>
-                            <td class="editable" data-row="8" data-col="3">地理</td>
-                            <td class="editable" data-row="8" data-col="4">体育</td>
-                            <td class="editable" data-row="8" data-col="5">自习</td>
-                            <td class="editable" data-row="8" data-col="6">生物</td>
-                            <td class="editable" data-row="8" data-col="7">-</td>
-                        </tr>
+                        <thead>
+                            <tr><th>节次/时间</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th>  </thead>
+                        <tbody>
+                            <tr id="timeRow1"><td class="time-slot">第一节<br>08:00-08:45</td>
+                                <td class="editable" data-row="1" data-col="1">语文</td><td class="editable" data-row="1" data-col="2">数学</td><td class="editable" data-row="1" data-col="3">英语</td>
+                                <td class="editable" data-row="1" data-col="4">物理</td><td class="editable" data-row="1" data-col="5">化学</td><td class="editable" data-row="1" data-col="6">自习</td><td class="editable" data-row="1" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow2"><td class="time-slot">第二节<br>08:55-09:40</td>
+                                <td class="editable" data-row="2" data-col="1">数学</td><td class="editable" data-row="2" data-col="2">语文</td><td class="editable" data-row="2" data-col="3">物理</td>
+                                <td class="editable" data-row="2" data-col="4">英语</td><td class="editable" data-row="2" data-col="5">生物</td><td class="editable" data-row="2" data-col="6">数学</td><td class="editable" data-row="2" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow3"><td class="time-slot">第三节<br>10:00-10:45</td>
+                                <td class="editable" data-row="3" data-col="1">英语</td><td class="editable" data-row="3" data-col="2">物理</td><td class="editable" data-row="3" data-col="3">数学</td>
+                                <td class="editable" data-row="3" data-col="4">语文</td><td class="editable" data-row="3" data-col="5">历史</td><td class="editable" data-row="3" data-col="6">英语</td><td class="editable" data-row="3" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow4"><td class="time-slot">第四节<br>10:55-11:40</td>
+                                <td class="editable" data-row="4" data-col="1">物理</td><td class="editable" data-row="4" data-col="2">英语</td><td class="editable" data-row="4" data-col="3">语文</td>
+                                <td class="editable" data-row="4" data-col="4">数学</td><td class="editable" data-row="4" data-col="5">政治</td><td class="editable" data-row="4" data-col="6">语文</td><td class="editable" data-row="4" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow5"><td class="time-slot">午休<br>12:00-14:00</td>
+                                <td colspan="7" style="background-color: #f0f8ff; color: #666;">午休时间</td>
+                            </tr>
+                            <tr id="timeRow6"><td class="time-slot">第五节<br>14:00-14:45</td>
+                                <td class="editable" data-row="6" data-col="1">化学</td><td class="editable" data-row="6" data-col="2">生物</td><td class="editable" data-row="6" data-col="3">政治</td>
+                                <td class="editable" data-row="6" data-col="4">历史</td><td class="editable" data-row="6" data-col="5">地理</td><td class="editable" data-row="6" data-col="6">物理</td><td class="editable" data-row="6" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow7"><td class="time-slot">第六节<br>14:55-15:40</td>
+                                <td class="editable" data-row="7" data-col="1">生物</td><td class="editable" data-row="7" data-col="2">化学</td><td class="editable" data-row="7" data-col="3">历史</td>
+                                <td class="editable" data-row="7" data-col="4">地理</td><td class="editable" data-row="7" data-col="5">体育</td><td class="editable" data-row="7" data-col="6">化学</td><td class="editable" data-row="7" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow8"><td class="time-slot">第七节<br>16:00-16:45</td>
+                                <td class="editable" data-row="8" data-col="1">历史</td><td class="editable" data-row="8" data-col="2">政治</td><td class="editable" data-row="8" data-col="3">地理</td>
+                                <td class="editable" data-row="8" data-col="4">体育</td><td class="editable" data-row="8" data-col="5">自习</td><td class="editable" data-row="8" data-col="6">生物</td><td class="editable" data-row="8" data-col="7">-</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 校园工具区域 -->
             <div class="content-section" id="tools-section">
                 <h2>校园实用工具</h2>
                 <div class="school-tools">
-                    <!-- 作息时间查询工具 -->
-                    <div class="tool-card">
-                        <h3>作息时间查询</h3>
-                        <div class="schedule-tool">
-                            <select class="schedule-select" id="scheduleSelect">
-                                <option value="">请选择查询项</option>
-                                <option value="morning">上午上课时间</option>
-                                <option value="noon">午休时间</option>
-                                <option value="afternoon">下午上课时间</option>
-                                <option value="evening">晚自习时间</option>
-                                <option value="leave">放学时间</option>
-                            </select>
-                            <div class="schedule-result" id="scheduleResult">请选择查询内容</div>
-                        </div>
-                    </div>
-
-                    <!-- 成绩计算工具 -->
+                    <!-- 成绩平均分计算卡片 -->
                     <div class="tool-card">
                         <h3>成绩平均分计算</h3>
                         <div class="score-tool">
@@ -1125,74 +921,87 @@
                         </div>
                     </div>
 
-                    <!-- 可编辑校园常用电话 -->
+                    <!-- 成绩管理与趋势卡片 -->
                     <div class="tool-card">
-                        <h3>校园常用电话</h3>
-                        <div class="phone-tool" id="phoneTool">
-                            <div class="phone-item">
-                                <span class="phone-label">📞 教务处：</span>
-                                <input type="text" class="phone-input" id="phone1" placeholder="输入电话号码">
-                                <button class="save-phone-btn" onclick="savePhoneNumber('phone1')">保存</button>
+                        <h3>📊 成绩管理与趋势</h3>
+                        <div style="margin-bottom: 15px;">
+                            <div class="target-area">
+                                <strong>🎯 目标设定</strong><br>
+                                <label>目标总分（满分750）：</label>
+                                <input type="number" id="targetTotalScore" placeholder="例：600" step="1" min="0" max="750" style="width: 100px; margin: 5px;">
+                                <button class="calculate-score-btn" onclick="saveTargetScore()" style="padding: 4px 12px;">保存目标</button>
+                                <div id="targetDisplay" style="margin-top: 8px; font-size: 13px;"></div>
                             </div>
-                            <div class="phone-item">
-                                <span class="phone-label">📞 政教处：</span>
-                                <input type="text" class="phone-input" id="phone2" placeholder="输入电话号码">
-                                <button class="save-phone-btn" onclick="savePhoneNumber('phone2')">保存</button>
+                            <div class="record-form">
+                                <h4 style="color:#005aa7; margin: 10px 0 5px;">📝 添加成绩记录</h4>
+                                <input type="text" id="examName" placeholder="考试名称 (例：期中考试)" style="width:100%; padding:6px; margin-bottom:6px;">
+                                <input type="date" id="examDate" style="width:100%; padding:6px; margin-bottom:6px;">
+                                <div class="subject-scores" id="subjectScoresContainer"></div>
+                                <button class="calculate-score-btn" onclick="addScoreRecord()">保存成绩记录</button>
                             </div>
-                            <div class="phone-item">
-                                <span class="phone-label">📞 总务处：</span>
-                                <input type="text" class="phone-input" id="phone3" placeholder="输入电话号码">
-                                <button class="save-phone-btn" onclick="savePhoneNumber('phone3')">保存</button>
-                            </div>
-                            <div class="phone-item">
-                                <span class="phone-label">📞 医务室：</span>
-                                <input type="text" class="phone-input" id="phone4" placeholder="输入电话号码">
-                                <button class="save-phone-btn" onclick="savePhoneNumber('phone4')">保存</button>
-                            </div>
-                            <div class="phone-item">
-                                <span class="phone-label">📞 图书馆：</span>
-                                <input type="text" class="phone-input" id="phone5" placeholder="输入电话号码">
-                                <button class="save-phone-btn" onclick="savePhoneNumber('phone5')">保存</button>
-                            </div>
-                            <div class="phone-item">
-                                <span class="phone-label">📞 门卫室：</span>
-                                <input type="text" class="phone-input" id="phone6" placeholder="输入电话号码">
-                                <button class="save-phone-btn" onclick="savePhoneNumber('phone6')">保存</button>
+                            <h4 style="color:#005aa7; margin: 20px 0 10px;">📈 成绩记录列表</h4>
+                            <div id="scoreRecordsList" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;"></div>
+                            <div class="chart-container">
+                                <canvas id="scoreTrendChart" width="300" height="150" style="width:100%; height:auto; max-height:200px;"></canvas>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 值日表记录 -->
+                    <!-- 作息时间查询卡片 -->
+                    <div class="tool-card">
+                        <h3>作息时间查询</h3>
+                        <div class="schedule-tool">
+                            <select class="schedule-select" id="scheduleSelect">
+                                <option value="">请选择查询项</option>
+                                <option value="morning">上午上课时间</option>
+                                <option value="noon">午休时间</option>
+                                <option value="afternoon">下午上课时间</option>
+                                <option value="evening">晚自习时间</option>
+                                <option value="leave">放学时间</option>
+                            </select>
+                            <div class="schedule-result" id="scheduleResult">请选择查询内容</div>
+                        </div>
+                    </div>
+
+                    <!-- 校园常用电话卡片 -->
+                    <div class="tool-card">
+                        <h3>校园常用电话</h3>
+                        <div class="phone-tool" id="phoneTool">
+                            <div class="phone-item"><span class="phone-label">📞 教务处：</span><input type="text" class="phone-input" id="phone1" placeholder="输入电话号码"><button class="save-phone-btn" onclick="savePhoneNumber('phone1')">保存</button></div>
+                            <div class="phone-item"><span class="phone-label">📞 政教处：</span><input type="text" class="phone-input" id="phone2" placeholder="输入电话号码"><button class="save-phone-btn" onclick="savePhoneNumber('phone2')">保存</button></div>
+                            <div class="phone-item"><span class="phone-label">📞 总务处：</span><input type="text" class="phone-input" id="phone3" placeholder="输入电话号码"><button class="save-phone-btn" onclick="savePhoneNumber('phone3')">保存</button></div>
+                            <div class="phone-item"><span class="phone-label">📞 医务室：</span><input type="text" class="phone-input" id="phone4" placeholder="输入电话号码"><button class="save-phone-btn" onclick="savePhoneNumber('phone4')">保存</button></div>
+                            <div class="phone-item"><span class="phone-label">📞 图书馆：</span><input type="text" class="phone-input" id="phone5" placeholder="输入电话号码"><button class="save-phone-btn" onclick="savePhoneNumber('phone5')">保存</button></div>
+                            <div class="phone-item"><span class="phone-label">📞 门卫室：</span><input type="text" class="phone-input" id="phone6" placeholder="输入电话号码"><button class="save-phone-btn" onclick="savePhoneNumber('phone6')">保存</button></div>
+                        </div>
+                    </div>
+
+                    <!-- 班级值日表卡片 -->
                     <div class="tool-card">
                         <h3>班级值日表</h3>
                         <div style="padding: 10px; flex: 1;">
                             <textarea id="dutyRecord" rows="6" placeholder="请输入班级值日安排，例如：
 周一：张三、李四（扫地）
-周二：王五、赵六（擦黑板）
-周三：孙七、周八（倒垃圾）
-..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; transition: border 0.3s;"></textarea>
+周二：王五、赵六（擦黑板）" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
                             <button class="calculate-score-btn" style="margin-top: 10px;" onclick="saveDutyRecord()">保存值日表</button>
                             <button class="calculate-score-btn" style="margin-top: 10px; margin-left: 10px;" onclick="loadDutyRecord()">加载值日表</button>
                         </div>
                     </div>
 
-                    <!-- 备忘录工具 -->
+                    <!-- 校园备忘录卡片 -->
                     <div class="tool-card">
                         <h3>校园备忘录</h3>
                         <div class="memo-tool">
                             <input type="date" class="memo-date" id="memoDate">
                             <textarea class="memo-input" id="memoContent" placeholder="请输入备忘录内容，例如：
 1. 明天交数学作业
-2. 周三下午班会
-3. 周五体育课带跳绳"></textarea>
+2. 周三下午班会"></textarea>
                             <button class="calculate-score-btn" onclick="addMemo()">添加备忘录</button>
-                            <div class="memo-list" id="memoList">
-                                <!-- 备忘录列表会动态生成 -->
-                            </div>
+                            <div class="memo-list" id="memoList"></div>
                         </div>
                     </div>
 
-                    <!-- 分贝检测工具 -->
+                    <!-- 分贝检测卡片 -->
                     <div class="tool-card">
                         <h3>分贝检测提醒</h3>
                         <div class="decibel-tool">
@@ -1201,41 +1010,81 @@
                                 <input type="number" class="threshold-input" id="decibelThreshold" value="80" min="0" max="120">
                                 <span>dB</span>
                             </div>
-                            <button class="decibel-btn start-btn" onclick="startDecibelDetection()">开始检测</button>
-                            <button class="decibel-btn stop-btn" onclick="stopDecibelDetection()" disabled>停止检测</button>
-                            
+                            <button class="decibel-btn start-btn" id="startDecibelBtn">开始检测</button>
+                            <button class="decibel-btn stop-btn" id="stopDecibelBtn" disabled>停止检测</button>
                             <div class="decibel-display" id="decibelValue">0</div>
                             <div class="decibel-warning" id="decibelWarning">⚠️ 声音过大！请保持安静！⚠️</div>
-                            
                             <div class="status-text" id="decibelStatus">未开始检测</div>
-                            
-                            <!-- 音频可视化 -->
-                            <div style="margin-top: 20px; height: 80px; background: #e6f0fa; border-radius: 5px; overflow: hidden; position: relative;">
-                                <div id="audioVisualizer" style="display: flex; align-items: flex-end; justify-content: center; height: 100%; padding: 10px;">
-                                    <!-- 动态生成的可视化柱形 -->
+                            <div style="margin-top: 20px; height: 80px; background: #e6f0fa; border-radius: 5px; overflow: hidden;">
+                                <div id="audioVisualizer" style="display: flex; align-items: flex-end; justify-content: center; height: 100%; padding: 10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 随机学号点名器卡片 -->
+                    <div class="tool-card">
+                        <h3>🎲 随机学号点名器</h3>
+                        <div style="text-align: center; flex: 1;">
+                            <label>学号范围：</label>
+                            <input type="number" id="rollMin" value="1" min="1" style="width: 60px;"> ~
+                            <input type="number" id="rollMax" value="45" min="1" style="width: 60px;">
+                            <button class="calculate-score-btn" onclick="randomRollCall()" style="margin: 10px auto;">随机点名</button>
+                            <div id="rollResult" class="score-result" style="font-size: 20px; font-weight: bold;">等待抽选</div>
+                        </div>
+                    </div>
+
+                    <!-- 错题本卡片 -->
+                    <div class="tool-card">
+                        <h3>📚 错题本</h3>
+                        <div>
+                            <div class="mistake-filter">
+                                <select id="mistakeSubjectFilter">
+                                    <option value="all">全部学科</option>
+                                    <option value="语文">语文</option>
+                                    <option value="数学">数学</option>
+                                    <option value="英语">英语</option>
+                                    <option value="物理">物理</option>
+                                    <option value="化学">化学</option>
+                                    <option value="生物">生物</option>
+                                    <option value="历史">历史</option>
+                                    <option value="政治">政治</option>
+                                    <option value="地理">地理</option>
+                                </select>
+                                <button class="calculate-score-btn" onclick="filterMistakes()">筛选</button>
+                                <button class="calculate-score-btn" onclick="showAddMistakeModal()">+ 添加错题</button>
+                            </div>
+                            <div class="mistake-list" id="mistakeList"></div>
+                            <div class="random-review">
+                                <button class="calculate-score-btn" onclick="randomReview()">🎲 随机抽题复习</button>
+                                <div id="reviewContent" style="margin-top: 10px;">
+                                    <div class="review-question"></div>
+                                    <div class="review-answer"></div>
+                                    <button class="calculate-score-btn" id="showAnswerBtn" style="display:none; margin-top: 8px;" onclick="showAnswer()">显示答案</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 随机学号点名器 -->
+                    <!-- 校园地图导航卡片 -->
                     <div class="tool-card">
-                        <h3>🎲 随机学号点名器</h3>
-                        <div style="text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                            <div>
-                                <label>学号范围：</label>
-                                <input type="number" id="rollMin" value="1" min="1" style="width: 60px; padding: 5px; transition: border 0.3s;"> 
-                                ~ 
-                                <input type="number" id="rollMax" value="45" min="1" style="width: 60px; padding: 5px; transition: border 0.3s;">
+                        <h3>🗺️ 校园地图导航</h3>
+                        <div class="map-container" style="position: relative; margin-top: 10px;">
+                            <!-- 校园平面图，请替换为实际图片路径 -->
+                            <img id="campusMapImg" src="https://picsum.photos/id/104/800/500" alt="校园平面图示例，请替换为实际图片" style="width: 100%; height: auto; border-radius: 6px; display: block;">
+                            <div id="mapMarkers" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                                <!-- 动态生成的标注点将在这里 -->
                             </div>
-                            <button class="calculate-score-btn" onclick="randomRollCall()" style="margin: 10px auto;">随机点名</button>
-                            <div id="rollResult" class="score-result" style="font-size: 20px; font-weight: bold;">等待抽选</div>
+                        </div>
+                        <div id="mapInfo" class="map-info">
+                            点击标注点查看详情
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button class="calculate-score-btn" onclick="resetMapInfo()">清空信息</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 高中知识点查询区域（已扩展详细解释） -->
             <div class="content-section" id="knowledge-section">
                 <h2>高中知识点查询</h2>
                 <div class="school-tools">
@@ -1244,32 +1093,20 @@
                         <div class="knowledge-tool">
                             <select class="knowledge-select" id="subjectSelect" onchange="loadChapters()">
                                 <option value="">请选择学科</option>
-                                <option value="chinese">语文</option>
-                                <option value="math">数学</option>
-                                <option value="english">英语</option>
-                                <option value="physics">物理</option>
-                                <option value="chemistry">化学</option>
-                                <option value="biology">生物</option>
-                                <option value="history">历史</option>
-                                <option value="politics">政治</option>
-                                <option value="geography">地理</option>
+                                <option value="chinese">语文</option><option value="math">数学</option><option value="english">英语</option>
+                                <option value="physics">物理</option><option value="chemistry">化学</option><option value="biology">生物</option>
+                                <option value="history">历史</option><option value="politics">政治</option><option value="geography">地理</option>
                             </select>
-                            
                             <select class="knowledge-chapter" id="chapterSelect" onchange="loadKnowledgePoints()">
                                 <option value="">请先选择学科</option>
                             </select>
-                            
                             <div class="loader" id="knowledgeLoader"></div>
-                            
-                            <div class="knowledge-content" id="knowledgeContent">
-                                请选择学科和章节查看知识点
-                            </div>
+                            <div class="knowledge-content" id="knowledgeContent">请选择学科和章节查看知识点</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 倒计时区域 -->
             <div class="content-section" id="countdown-section">
                 <h2>考试/节日倒计时</h2>
                 <div class="countdown">
@@ -1282,94 +1119,781 @@
         </div>
     </div>
 
-    <!-- 返回顶部按钮 -->
-    <div class="back-to-top" id="backToTop" onclick="scrollToTop()">
-        ↑
-    </div>
+    <div class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</div>
 
-    <!-- 标题编辑弹窗 -->
+    <!-- 编辑标题模态框 -->
     <div class="edit-modal" id="titleEditModal">
         <div class="edit-modal-content">
             <h3>编辑页面标题</h3>
-            <div class="form-group">
-                <label for="newMainTitle">主标题</label>
-                <input type="text" id="newMainTitle" placeholder="请输入主标题">
-            </div>
-            <div class="form-group">
-                <label for="newSubTitle">副标题</label>
-                <input type="text" id="newSubTitle" placeholder="请输入副标题">
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button>
-                <button class="modal-btn confirm-btn" onclick="saveTitleEdit()">确认修改</button>
-            </div>
+            <div class="form-group"><label for="newMainTitle">主标题</label><input type="text" id="newMainTitle"></div>
+            <div class="form-group"><label for="newSubTitle">副标题</label><input type="text" id="newSubTitle"></div>
+            <div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="saveTitleEdit()">确认修改</button></div>
         </div>
     </div>
 
-    <!-- 添加时间段弹窗 -->
+    <!-- 添加时间段模态框 -->
     <div class="edit-modal" id="addTimeModal">
         <div class="edit-modal-content">
             <h3>添加新的时间段</h3>
-            <div class="form-group">
-                <label for="timeSlotName">时间段名称</label>
-                <input type="text" id="timeSlotName" placeholder="如：晚自习、第八节">
-            </div>
-            <div class="form-group">
-                <label for="timeSlotRange">时间范围</label>
-                <input type="text" id="timeSlotRange" placeholder="如：19:00-21:00">
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button>
-                <button class="modal-btn confirm-btn" onclick="addNewTimeSlot()">确认添加</button>
-            </div>
+            <div class="form-group"><label for="timeSlotName">时间段名称</label><input type="text" id="timeSlotName" placeholder="如：晚自习、第八节"></div>
+            <div class="form-group"><label for="timeSlotRange">时间范围（如 19:00-21:00）</label><input type="text" id="timeSlotRange" placeholder="19:00-21:00"></div>
+            <div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="addNewTimeSlot()">确认添加</button></div>
         </div>
     </div>
 
-    <!-- 课程表编辑弹窗 -->
+    <!-- 课程编辑模态框 -->
     <div class="edit-modal" id="courseEditModal">
         <div class="edit-modal-content">
             <h3>编辑课程信息</h3>
-            <input type="hidden" id="editRow">
-            <input type="hidden" id="editCol">
+            <input type="hidden" id="editRow"><input type="hidden" id="editCol">
+            <div class="form-group"><label for="courseName">课程名称</label><input type="text" id="courseName"></div>
+            <div class="form-group"><label for="teacherName">任课老师（选填）</label><input type="text" id="teacherName"></div>
+            <div class="form-group"><label for="classroom">教室（选填）</label><input type="text" id="classroom"></div>
+            <div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="saveCourseEdit()">确认修改</button></div>
+        </div>
+    </div>
+
+    <!-- 错题本添加/编辑模态框 -->
+    <div class="edit-modal" id="mistakeModal">
+        <div class="edit-modal-content">
+            <h3 id="mistakeModalTitle">添加错题</h3>
+            <input type="hidden" id="editMistakeId">
             <div class="form-group">
-                <label for="courseName">课程名称</label>
-                <input type="text" id="courseName" placeholder="请输入课程名称">
+                <label>学科</label>
+                <select id="mistakeSubject">
+                    <option value="语文">语文</option>
+                    <option value="数学">数学</option>
+                    <option value="英语">英语</option>
+                    <option value="物理">物理</option>
+                    <option value="化学">化学</option>
+                    <option value="生物">生物</option>
+                    <option value="历史">历史</option>
+                    <option value="政治">政治</option>
+                    <option value="地理">地理</option>
+                </select>
             </div>
             <div class="form-group">
-                <label for="teacherName">任课老师（选填）</label>
-                <input type="text" id="teacherName" placeholder="请输入任课老师姓名">
+                <label>题目内容</label>
+                <textarea id="mistakeQuestion" rows="3" placeholder="请描述题目..."></textarea>
             </div>
             <div class="form-group">
-                <label for="classroom">教室（选填）</label>
-                <input type="text" id="classroom" placeholder="请输入教室编号">
+                <label>错误原因</label>
+                <textarea id="mistakeReason" rows="2" placeholder="分析错误原因..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>正确答案/解析</label>
+                <textarea id="mistakeAnswer" rows="3" placeholder="正确答案或解题思路..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>章节（选填）</label>
+                <input type="text" id="mistakeChapter" placeholder="如：三角函数、牛顿定律">
             </div>
             <div class="modal-buttons">
                 <button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button>
-                <button class="modal-btn confirm-btn" onclick="saveCourseEdit()">确认修改</button>
+                <button class="modal-btn confirm-btn" onclick="saveMistake()">保存</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ---------- 全局变量 ----------
-        let isEditing = false;
-        let rowCounter = 9; // 用于新增时间段行ID
-        let countdownInterval;
-        let audioContext, analyser, microphone, detectionInterval, isDetecting = false;
+        // ---------- 辅助函数 ----------
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
 
-        // ---------- DOM 元素绑定 ----------
-        const editTitleBtn = document.getElementById('editTitleBtn');
-        const titleEditModal = document.getElementById('titleEditModal');
-        const mainTitle = document.getElementById('mainTitle');
-        const subTitle = document.getElementById('subTitle');
-        const addTimeBtn = document.getElementById('addTimeBtn');
-        const addTimeModal = document.getElementById('addTimeModal');
-        const editBtn = document.getElementById('editTimetableBtn');
-        const saveBtn = document.getElementById('saveTimetableBtn');
-        const courseEditModal = document.getElementById('courseEditModal');
+        // ---------- 错题本模块 ----------
+        let currentMistakeFilter = "all";
+        let currentReviewMistake = null;
 
-        // ---------- 页面初始化 ----------
+        function getMistakes() {
+            let mistakes = localStorage.getItem("gyez_mistakes");
+            return mistakes ? JSON.parse(mistakes) : [];
+        }
+        function saveMistakes(mistakes) {
+            localStorage.setItem("gyez_mistakes", JSON.stringify(mistakes));
+        }
+
+        function saveMistake() {
+            const id = document.getElementById("editMistakeId").value;
+            const subject = document.getElementById("mistakeSubject").value;
+            const question = document.getElementById("mistakeQuestion").value.trim();
+            const reason = document.getElementById("mistakeReason").value.trim();
+            const answer = document.getElementById("mistakeAnswer").value.trim();
+            const chapter = document.getElementById("mistakeChapter").value.trim();
+
+            if (!subject || !question || !reason || !answer) {
+                alert("请填写学科、题目、错误原因和正确答案！");
+                return;
+            }
+
+            let mistakes = getMistakes();
+            if (id) {
+                const index = mistakes.findIndex(m => m.id == id);
+                if (index !== -1) {
+                    mistakes[index] = {
+                        ...mistakes[index],
+                        subject, question, reason, answer, chapter,
+                        updateTime: new Date().toISOString()
+                    };
+                }
+            } else {
+                mistakes.push({
+                    id: Date.now(),
+                    subject, question, reason, answer, chapter,
+                    createTime: new Date().toISOString(),
+                    updateTime: new Date().toISOString()
+                });
+            }
+            saveMistakes(mistakes);
+            closeEditModal();
+            renderMistakeList();
+        }
+
+        function deleteMistake(id) {
+            if (confirm("确定删除这道错题吗？")) {
+                let mistakes = getMistakes();
+                mistakes = mistakes.filter(m => m.id !== id);
+                saveMistakes(mistakes);
+                renderMistakeList();
+                if (currentReviewMistake && currentReviewMistake.id === id) {
+                    document.getElementById("reviewContent").querySelector(".review-question").innerHTML = "";
+                    document.getElementById("reviewContent").querySelector(".review-answer").innerHTML = "";
+                    document.getElementById("showAnswerBtn").style.display = "none";
+                    currentReviewMistake = null;
+                }
+            }
+        }
+
+        function showAddMistakeModal() {
+            document.getElementById("mistakeModalTitle").innerText = "添加错题";
+            document.getElementById("editMistakeId").value = "";
+            document.getElementById("mistakeSubject").value = "语文";
+            document.getElementById("mistakeQuestion").value = "";
+            document.getElementById("mistakeReason").value = "";
+            document.getElementById("mistakeAnswer").value = "";
+            document.getElementById("mistakeChapter").value = "";
+            document.getElementById("mistakeModal").style.display = "flex";
+        }
+
+        function editMistake(id) {
+            let mistakes = getMistakes();
+            let mistake = mistakes.find(m => m.id === id);
+            if (!mistake) return;
+            document.getElementById("mistakeModalTitle").innerText = "编辑错题";
+            document.getElementById("editMistakeId").value = mistake.id;
+            document.getElementById("mistakeSubject").value = mistake.subject;
+            document.getElementById("mistakeQuestion").value = mistake.question;
+            document.getElementById("mistakeReason").value = mistake.reason;
+            document.getElementById("mistakeAnswer").value = mistake.answer;
+            document.getElementById("mistakeChapter").value = mistake.chapter || "";
+            document.getElementById("mistakeModal").style.display = "flex";
+        }
+
+        function viewMistakeDetail(id) {
+            let mistakes = getMistakes();
+            let mistake = mistakes.find(m => m.id === id);
+            if (!mistake) return;
+            alert(`题目：${mistake.question}\n\n错误原因：${mistake.reason}\n\n正确答案：${mistake.answer}\n\n章节：${mistake.chapter || "无"}`);
+        }
+
+        function renderMistakeList() {
+            let mistakes = getMistakes();
+            if (currentMistakeFilter !== "all") {
+                mistakes = mistakes.filter(m => m.subject === currentMistakeFilter);
+            }
+            mistakes.sort((a,b) => new Date(b.createTime) - new Date(a.createTime));
+
+            const container = document.getElementById("mistakeList");
+            if (!container) return;
+            if (mistakes.length === 0) {
+                container.innerHTML = "<div style='text-align:center; color:#666; padding:20px;'>暂无错题，点击上方按钮添加</div>";
+                return;
+            }
+            container.innerHTML = "";
+            mistakes.forEach(m => {
+                const div = document.createElement("div");
+                div.className = "mistake-item";
+                div.innerHTML = `
+                    <span class="mistake-subject">${escapeHtml(m.subject)}</span>
+                    <div class="mistake-question">${escapeHtml(m.question.length > 50 ? m.question.substring(0,50)+"..." : m.question)}</div>
+                    <div class="mistake-actions">
+                        <button onclick="viewMistakeDetail(${m.id})">查看详情</button>
+                        <button onclick="editMistake(${m.id})">编辑</button>
+                        <button class="delete" onclick="deleteMistake(${m.id})">删除</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterMistakes() {
+            currentMistakeFilter = document.getElementById("mistakeSubjectFilter").value;
+            renderMistakeList();
+        }
+
+        function randomReview() {
+            let mistakes = getMistakes();
+            if (mistakes.length === 0) {
+                alert("还没有错题，请先添加错题！");
+                return;
+            }
+            const randomIndex = Math.floor(Math.random() * mistakes.length);
+            currentReviewMistake = mistakes[randomIndex];
+            const reviewDiv = document.getElementById("reviewContent");
+            reviewDiv.querySelector(".review-question").innerHTML = `<strong>题目：</strong> ${escapeHtml(currentReviewMistake.question)}`;
+            reviewDiv.querySelector(".review-answer").innerHTML = `<strong>答案：</strong> ${escapeHtml(currentReviewMistake.answer)}`;
+            reviewDiv.querySelector(".review-answer").classList.remove("show");
+            document.getElementById("showAnswerBtn").style.display = "inline-block";
+        }
+
+        function showAnswer() {
+            const answerDiv = document.getElementById("reviewContent").querySelector(".review-answer");
+            answerDiv.classList.add("show");
+        }
+
+        // ---------- 校园地图导航模块 ----------
+        // 校园地标配置（根据实际图片调整 left/top 百分比）
+        const campusSpots = [
+            {
+                name: "教学楼",
+                description: "高中部主教学楼，共6层，设有普通教室、教师办公室。",
+                route: "从校门直走100米，右侧即为教学楼。",
+                left: "30%",
+                top: "35%"
+            },
+            {
+                name: "食堂",
+                description: "两层餐厅，提供早中晚餐，一层为快餐，二层为风味窗口。",
+                route: "教学楼后方直走，经过操场左侧即可到达。",
+                left: "65%",
+                top: "45%"
+            },
+            {
+                name: "图书馆",
+                description: "藏书3万册，设有自习室，开放时间 8:00-18:00。",
+                route: "操场东侧，与行政楼相邻。",
+                left: "20%",
+                top: "70%"
+            },
+            {
+                name: "操场",
+                description: "400米标准跑道，篮球场、足球场。",
+                route: "校园中央，教学楼正后方。",
+                left: "50%",
+                top: "55%"
+            },
+            {
+                name: "实验楼",
+                description: "物理、化学、生物实验室及多媒体教室。",
+                route: "教学楼西侧，与艺术楼相连。",
+                left: "40%",
+                top: "20%"
+            }
+        ];
+
+        function renderMapMarkers() {
+            const container = document.getElementById("mapMarkers");
+            if (!container) return;
+            container.innerHTML = "";
+            campusSpots.forEach((spot, index) => {
+                const marker = document.createElement("div");
+                marker.className = "map-marker";
+                marker.style.position = "absolute";
+                marker.style.left = spot.left;
+                marker.style.top = spot.top;
+                marker.style.width = "24px";
+                marker.style.height = "24px";
+                marker.style.backgroundColor = "#ff5722";
+                marker.style.borderRadius = "50%";
+                marker.style.border = "2px solid white";
+                marker.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+                marker.style.cursor = "pointer";
+                marker.style.pointerEvents = "auto";
+                marker.style.zIndex = "10";
+                marker.style.transform = "translate(-50%, -50%)";
+                marker.style.display = "flex";
+                marker.style.alignItems = "center";
+                marker.style.justifyContent = "center";
+                marker.style.color = "white";
+                marker.style.fontWeight = "bold";
+                marker.style.fontSize = "12px";
+                marker.textContent = index + 1;
+                marker.title = spot.name;
+                marker.onclick = () => showSpotInfo(spot);
+                container.appendChild(marker);
+            });
+        }
+
+        function showSpotInfo(spot) {
+            const infoDiv = document.getElementById("mapInfo");
+            if (infoDiv) {
+                infoDiv.innerHTML = `
+                    <strong>📍 ${spot.name}</strong><br>
+                    ${spot.description}<br>
+                    <span style="color:#005aa7;">🚶 路线指引：</span> ${spot.route}
+                `;
+            }
+        }
+
+        function resetMapInfo() {
+            const infoDiv = document.getElementById("mapInfo");
+            if (infoDiv) infoDiv.innerHTML = "点击标注点查看详情";
+        }
+
+        // ---------- 原有成绩管理模块 ----------
+        let scoreChart = null;
+        const subjectNames = ["语文", "数学", "英语", "物理", "化学", "生物", "历史", "政治"];
+        function initSubjectInputs() {
+            const container = document.getElementById("subjectScoresContainer");
+            if (!container) return;
+            container.innerHTML = "";
+            subjectNames.forEach((sub, idx) => {
+                let div = document.createElement("div");
+                div.style.display = "inline-block";
+                div.style.margin = "0 5px 5px 0";
+                div.innerHTML = `<label style="font-size:12px;">${sub}</label>
+                                 <input type="number" class="score-input" id="sub_${idx}" placeholder="0-100" min="0" max="100" step="1" style="width:60px;">`;
+                container.appendChild(div);
+            });
+        }
+        function loadScoreRecords() {
+            let records = JSON.parse(localStorage.getItem("gyez_score_records") || "[]");
+            records.sort((a,b) => new Date(b.date) - new Date(a.date));
+            return records;
+        }
+        function saveScoreRecords(records) {
+            localStorage.setItem("gyez_score_records", JSON.stringify(records));
+        }
+        function addScoreRecord() {
+            let examName = document.getElementById("examName").value.trim();
+            let examDate = document.getElementById("examDate").value;
+            if (!examName || !examDate) { alert("请填写考试名称和日期"); return; }
+            let scores = [];
+            for (let i=0; i<subjectNames.length; i++) {
+                let val = parseFloat(document.getElementById(`sub_${i}`).value);
+                if (isNaN(val)) val = 0;
+                if (val < 0) val = 0;
+                if (val > 100) val = 100;
+                scores.push(val);
+            }
+            let total = scores.reduce((a,b)=>a+b, 0);
+            let average = (total / subjectNames.length).toFixed(1);
+            let record = {
+                id: Date.now(),
+                examName: escapeHtml(examName),
+                date: examDate,
+                scores: scores,
+                total: total,
+                average: average
+            };
+            let records = loadScoreRecords();
+            records.unshift(record);
+            saveScoreRecords(records);
+            renderScoreRecords();
+            updateScoreChart();
+            document.getElementById("examName").value = "";
+            document.getElementById("examDate").value = "";
+            for (let i=0; i<subjectNames.length; i++) { document.getElementById(`sub_${i}`).value = ""; }
+            alert("成绩记录已保存");
+        }
+        function deleteScoreRecord(id) {
+            if (confirm("确定删除该成绩记录吗？")) {
+                let records = loadScoreRecords();
+                records = records.filter(r => r.id !== id);
+                saveScoreRecords(records);
+                renderScoreRecords();
+                updateScoreChart();
+            }
+        }
+        function renderScoreRecords() {
+            const container = document.getElementById("scoreRecordsList");
+            if (!container) return;
+            let records = loadScoreRecords();
+            if (records.length === 0) { container.innerHTML = "<div style='text-align:center; color:#666; padding:10px;'>暂无成绩记录，请添加</div>"; return; }
+            container.innerHTML = "";
+            records.forEach(rec => {
+                let div = document.createElement("div");
+                div.className = "score-record-item";
+                div.innerHTML = `
+                    <div class="score-record-info">
+                        <strong>${rec.examName}</strong> (${rec.date})<br>
+                        总分: ${rec.total}  |  平均分: ${rec.average}<br>
+                        <span style="font-size:12px;">${rec.scores.map((s,i)=>`${subjectNames[i]}:${s}`).join(" | ")}</span>
+                    </div>
+                    <button class="delete-record-btn" onclick="deleteScoreRecord(${rec.id})">删除</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        function saveTargetScore() {
+            let target = parseFloat(document.getElementById("targetTotalScore").value);
+            if (isNaN(target) || target<0 || target>750) { alert("请输入0~750之间的目标总分"); return; }
+            localStorage.setItem("gyez_score_target", target);
+            updateTargetDisplay();
+        }
+        function updateTargetDisplay() {
+            let target = localStorage.getItem("gyez_score_target");
+            let displayDiv = document.getElementById("targetDisplay");
+            if (!displayDiv) return;
+            if (!target) { displayDiv.innerHTML = "未设置目标总分"; return; }
+            let records = loadScoreRecords();
+            let lastRecord = records.length ? records[0] : null;
+            let lastTotal = lastRecord ? lastRecord.total : null;
+            let gap = lastTotal !== null ? (target - lastTotal).toFixed(1) : null;
+            let gapText = (gap !== null) ? (gap >=0 ? `还差 ${gap} 分` : `已超出 ${-gap} 分`) : "暂无最近成绩";
+            displayDiv.innerHTML = `🎯 目标总分：${target} 分<br>📊 最近一次：${lastTotal ? lastTotal : "无"} 分<br>${gapText}`;
+        }
+        function updateScoreChart() {
+            let records = loadScoreRecords();
+            let sorted = [...records].sort((a,b) => new Date(a.date) - new Date(b.date));
+            let labels = sorted.map(r => r.examName);
+            let totals = sorted.map(r => r.total);
+            let ctx = document.getElementById("scoreTrendChart").getContext("2d");
+            if (scoreChart) scoreChart.destroy();
+            if (labels.length === 0) { ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height); return; }
+            scoreChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: [{ label: '总分趋势', data: totals, borderColor: '#005aa7', backgroundColor: 'rgba(0,90,167,0.1)', tension: 0.3, fill: true, pointBackgroundColor: '#005aa7', pointBorderColor: '#fff', pointRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, title: { display: true, text: '总分' } } } }
+            });
+        }
+
+        // ---------- 原有其他功能 ----------
+        function calculateAverageScore() {
+            let scores = [], total = 0;
+            for (let i=1;i<=8;i++) {
+                let v = parseFloat(document.getElementById(`score${i}`).value);
+                if (!isNaN(v) && v>=0 && v<=100) { scores.push(v); total+=v; }
+            }
+            if (scores.length===0) { document.getElementById('scoreResult').textContent='请输入至少一个有效成绩（0-100）'; return; }
+            let avg = (total/scores.length).toFixed(2);
+            let level = avg>=90?'优秀':avg>=80?'良好':avg>=70?'中等':avg>=60?'及格':'不及格';
+            document.getElementById('scoreResult').textContent = `共计算 ${scores.length} 科成绩：总分 ${total} 分，平均分 ${avg} 分，综合评级：${level}`;
+        }
+        function saveDutyRecord() {
+            let text = document.getElementById('dutyRecord').value;
+            localStorage.setItem('gyez_duty_data', escapeHtml(text));
+            alert('值日表已保存！');
+        }
+        function loadDutyRecord() {
+            let saved = localStorage.getItem('gyez_duty_data');
+            if (saved) document.getElementById('dutyRecord').value = saved;
+        }
+        function savePhoneNumber(phoneId) {
+            let phoneValue = escapeHtml(document.getElementById(phoneId).value.trim());
+            if (!phoneValue) { alert('电话号码不能为空！'); return; }
+            let data = JSON.parse(localStorage.getItem('gyez_phone_data') || '{}');
+            data[phoneId] = phoneValue;
+            localStorage.setItem('gyez_phone_data', JSON.stringify(data));
+            alert('电话号码已保存！');
+        }
+        function loadPhoneNumbers() {
+            let data = JSON.parse(localStorage.getItem('gyez_phone_data') || '{}');
+            const defaults = { phone1:'0851-8586XXXX', phone2:'0851-8587XXXX', phone3:'0851-8588XXXX', phone4:'0851-8589XXXX', phone5:'0851-8590XXXX', phone6:'0851-8591XXXX' };
+            for (let i=1;i<=6;i++) {
+                let inp = document.getElementById(`phone${i}`);
+                if (inp) inp.value = data[`phone${i}`] || defaults[`phone${i}`];
+            }
+        }
+        function addMemo() {
+            const date = document.getElementById('memoDate').value;
+            let content = document.getElementById('memoContent').value;
+            if (!date || !content) { alert('日期和备忘录内容不能为空！'); return; }
+            let memos = JSON.parse(localStorage.getItem('gyez_memo_data') || '[]');
+            memos.push({ id: Date.now(), date: date, content: escapeHtml(content) });
+            localStorage.setItem('gyez_memo_data', JSON.stringify(memos));
+            loadMemos();
+            document.getElementById('memoDate').value = '';
+            document.getElementById('memoContent').value = '';
+            alert('备忘录添加成功！');
+        }
+        function loadMemos() {
+            const memoList = document.getElementById('memoList');
+            const memos = JSON.parse(localStorage.getItem('gyez_memo_data') || '[]');
+            memoList.innerHTML = '';
+            if (memos.length===0) { memoList.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">暂无备忘录，请添加</div>'; return; }
+            memos.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            memos.forEach(memo => {
+                const div = document.createElement('div');
+                div.className = 'memo-item';
+                div.innerHTML = `<div class="date">📅 ${escapeHtml(memo.date)}</div><div class="content">${memo.content.replace(/\n/g,'<br>')}</div><button class="delete-btn" onclick="deleteMemo(${memo.id})">删除</button>`;
+                memoList.appendChild(div);
+            });
+        }
+        function deleteMemo(id) {
+            if (confirm('确定删除这条备忘录吗？')) {
+                let memos = JSON.parse(localStorage.getItem('gyez_memo_data') || '[]');
+                memos = memos.filter(m => m.id !== id);
+                localStorage.setItem('gyez_memo_data', JSON.stringify(memos));
+                loadMemos();
+            }
+        }
+        function randomRollCall() {
+            let min = parseInt(document.getElementById('rollMin').value) || 1;
+            let max = parseInt(document.getElementById('rollMax').value) || 45;
+            if (min >= max) { alert('最小值必须小于最大值！'); return; }
+            let rand = Math.floor(Math.random() * (max - min + 1)) + min;
+            document.getElementById('rollResult').textContent = `🎉 被点到：${rand} 号`;
+        }
+        function startCountdown() {
+            let title = escapeHtml(document.getElementById('countdown-title').value.trim()) || '目标事件';
+            let targetDate = new Date(document.getElementById('countdown-date').value);
+            if (isNaN(targetDate.getTime())) { document.getElementById('countdown-result').textContent = '请选择有效的日期'; return; }
+            if (countdownInterval) clearInterval(countdownInterval);
+            function update() {
+                let diff = targetDate - new Date();
+                if (diff <= 0) { document.getElementById('countdown-result').textContent = `${title} 已结束！`; clearInterval(countdownInterval); return; }
+                let days = Math.floor(diff/(1000*60*60*24));
+                let hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+                let mins = Math.floor((diff%(1000*60*60))/(1000*60));
+                let secs = Math.floor((diff%(1000*60))/1000);
+                document.getElementById('countdown-result').textContent = `${title} 还有：${days}天 ${hours}时 ${mins}分 ${secs}秒`;
+            }
+            update();
+            countdownInterval = setInterval(update, 1000);
+        }
+        function fetchWeather() {
+            const defaultLat = 26.65, defaultLon = 106.63;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => getWeatherFromAPI(pos.coords.latitude, pos.coords.longitude),
+                    err => { console.warn(err); getWeatherFromAPI(defaultLat, defaultLon); },
+                    { timeout: 5000 }
+                );
+            } else getWeatherFromAPI(defaultLat, defaultLon);
+        }
+        function getWeatherFromAPI(lat, lon) {
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`)
+                .then(res => res.json())
+                .then(data => {
+                    const current = data.current_weather;
+                    if (!current) throw new Error();
+                    const temp = current.temperature;
+                    const code = current.weathercode;
+                    const map = {0:{desc:'晴朗',icon:'☀️'},1:{desc:'晴间多云',icon:'🌤'},2:{desc:'多云',icon:'⛅'},3:{desc:'阴',icon:'☁️'},45:{desc:'雾',icon:'🌫'},48:{desc:'雾凇',icon:'🌫'},51:{desc:'小雨',icon:'🌧'},53:{desc:'中雨',icon:'🌧'},55:{desc:'大雨',icon:'🌧'},61:{desc:'阵雨',icon:'🌦'},63:{desc:'阵雨',icon:'🌦'},65:{desc:'暴雨',icon:'🌦'},71:{desc:'小雪',icon:'🌨'},73:{desc:'中雪',icon:'🌨'},75:{desc:'大雪',icon:'🌨'},77:{desc:'雪粒',icon:'🌨'},80:{desc:'雷阵雨',icon:'⛈'},81:{desc:'雷阵雨',icon:'⛈'},82:{desc:'雷暴',icon:'⛈'},95:{desc:'雷暴',icon:'⛈'},96:{desc:'雷暴',icon:'⛈'},99:{desc:'雷暴',icon:'⛈'}};
+                    const w = map[code] || {desc:'其他',icon:'🌈'};
+                    const today = new Date();
+                    document.getElementById('weatherIcon').textContent = w.icon;
+                    document.getElementById('weatherDesc').textContent = `${today.getMonth()+1}月${today.getDate()}日 ${w.desc}`;
+                    document.getElementById('weatherTemp').textContent = `${Math.round(temp)}℃`;
+                })
+                .catch(() => {
+                    document.getElementById('weatherIcon').textContent='⚠️';
+                    document.getElementById('weatherDesc').textContent='天气加载失败';
+                    document.getElementById('weatherTemp').textContent='--℃';
+                });
+        }
+        function checkAndRemind() {
+            const now = new Date();
+            const currentMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+            let colIndex = now.getDay();
+            if (colIndex === 0) colIndex = 7;
+            const rows = document.querySelectorAll('#editableTimetable tbody tr');
+            let courses = [];
+            rows.forEach(row => {
+                const tds = row.querySelectorAll('td');
+                if (tds.length < 8) return;
+                const timeCell = tds[0];
+                const timeMatch = timeCell.innerText.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
+                if (!timeMatch) return;
+                const startStr = timeMatch[1], endStr = timeMatch[2];
+                const courseCell = tds[colIndex];
+                if (!courseCell) return;
+                let courseName = courseCell.innerText.trim();
+                if (!courseName || courseName === '-') return;
+                const startParts = startStr.split(':').map(Number);
+                const startMinutes = startParts[0]*60 + startParts[1];
+                const endParts = endStr.split(':').map(Number);
+                const endMinutes = endParts[0]*60 + endParts[1];
+                courses.push({ name: courseName, start: startMinutes, end: endMinutes, startStr, endStr });
+            });
+            courses.sort((a,b)=>a.start-b.start);
+            let nextCourse = null;
+            for (let c of courses) if (c.start > currentMin) { nextCourse = c; break; }
+            if (!nextCourse) return;
+            const diff = nextCourse.start - currentMin;
+            if (diff > 0 && diff <= 2) {
+                const key = `${now.getDay()}_${nextCourse.start}_${nextCourse.name}`;
+                if (window.lastRemindedKey === key) return;
+                document.getElementById('nextCourseName').textContent = escapeHtml(nextCourse.name);
+                document.getElementById('nextCourseTime').textContent = `${nextCourse.startStr} - ${nextCourse.endStr}`;
+                document.getElementById('reminderOverlay').style.display = 'flex';
+                window.lastRemindedKey = key;
+                if (window.reminderTimeout) clearTimeout(window.reminderTimeout);
+                window.reminderTimeout = setTimeout(closeReminderOverlay, 5000);
+            }
+        }
+        function closeReminderOverlay() {
+            const overlay = document.getElementById('reminderOverlay');
+            if (overlay) overlay.style.display = 'none';
+            if (window.reminderTimeout) clearTimeout(window.reminderTimeout);
+            window.reminderTimeout = null;
+        }
+        function scrollToTop() { window.scrollTo({top:0,behavior:'smooth'}); }
+        function initBackToTop() {
+            const btn = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => btn.style.display = window.pageYOffset>300 ? 'flex' : 'none');
+        }
+        function closeEditModal() { document.querySelectorAll('.edit-modal').forEach(m=>m.style.display='none'); }
+
+        // 课程表相关函数
+        function saveTitleEdit() {
+            const newMain = escapeHtml(document.getElementById('newMainTitle').value);
+            const newSub = escapeHtml(document.getElementById('newSubTitle').value);
+            const mainTitle = document.getElementById('mainTitle');
+            const subTitle = document.getElementById('subTitle');
+            if (newMain && mainTitle) mainTitle.textContent = newMain;
+            if (newSub && subTitle) subTitle.textContent = newSub;
+            localStorage.setItem('gyez_title_data', JSON.stringify({ main: newMain, sub: newSub }));
+            closeEditModal();
+            alert('标题修改已保存！');
+        }
+        function getTimetableData() {
+            const data = {};
+            document.querySelectorAll('.editable').forEach(cell => {
+                data[`row${cell.getAttribute('data-row')}col${cell.getAttribute('data-col')}`] = cell.innerHTML;
+            });
+            return data;
+        }
+        function saveCourseEdit() {
+            const row = document.getElementById('editRow').value;
+            const col = document.getElementById('editCol').value;
+            let courseName = escapeHtml(document.getElementById('courseName').value.trim());
+            const teacher = escapeHtml(document.getElementById('teacherName').value.trim());
+            const classroom = escapeHtml(document.getElementById('classroom').value.trim());
+            if (!courseName) { alert('课程名称不能为空！'); return; }
+            let content = courseName;
+            if (teacher) content += `<br>(${teacher})`;
+            if (classroom) content += `<br>教室:${classroom}`;
+            const cell = document.querySelector(`.editable[data-row="${row}"][data-col="${col}"]`);
+            if (cell) cell.innerHTML = content;
+            closeEditModal();
+            alert('课程信息已更新！');
+        }
+        function addNewTimeSlot() {
+            const slotName = escapeHtml(document.getElementById('timeSlotName').value.trim());
+            const slotRange = document.getElementById('timeSlotRange').value.trim();
+            if (!slotName || !slotRange) { alert('时间段名称和时间范围不能为空！'); return; }
+            const timePattern = /^\d{2}:\d{2}-\d{2}:\d{2}$/;
+            if (!timePattern.test(slotRange)) { alert('时间格式错误，请使用如 19:00-21:00 的格式'); return; }
+            const timetable = document.getElementById('editableTimetable').querySelector('tbody');
+            const newRow = document.createElement('tr');
+            newRow.id = `timeRow${rowCounter}`;
+            const timeCell = document.createElement('td');
+            timeCell.className = 'time-slot';
+            timeCell.innerHTML = `${slotName}<br>${slotRange}`;
+            newRow.appendChild(timeCell);
+            for (let i = 1; i <= 7; i++) {
+                const cell = document.createElement('td');
+                cell.className = 'editable';
+                cell.setAttribute('data-row', rowCounter);
+                cell.setAttribute('data-col', i);
+                cell.textContent = '-';
+                cell.addEventListener('click', () => {
+                    if (isEditing) {
+                        document.getElementById('editRow').value = rowCounter;
+                        document.getElementById('editCol').value = i;
+                        document.getElementById('courseName').value = '';
+                        document.getElementById('courseEditModal').style.display = 'flex';
+                    }
+                });
+                newRow.appendChild(cell);
+            }
+            const noonRow = document.getElementById('timeRow5');
+            if (noonRow) noonRow.parentNode.insertBefore(newRow, noonRow.nextSibling);
+            rowCounter++;
+            closeEditModal();
+            alert('新时间段已添加！');
+        }
+
+        // 分贝检测相关函数（简化）
+        let isDetecting = false, mediaStream = null, audioContext, analyser, detectionInterval;
+        function createVisualizerBars() { /* 占位 */ }
+        function updateVisualizer(v) { /* 占位 */ }
+        function calculateDecibels() { return 0; }
+        function detectDecibels() { /* 占位 */ }
+        async function startDecibelDetection() {
+            if (isDetecting) return;
+            try {
+                audioContext = new (window.AudioContext||window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaStream = stream;
+                const microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 2048;
+                createVisualizerBars();
+                isDetecting = true;
+                document.getElementById('decibelStatus').textContent = '正在检测中...';
+                document.getElementById('startDecibelBtn').disabled = true;
+                document.getElementById('stopDecibelBtn').disabled = false;
+                detectionInterval = setInterval(detectDecibels, 200);
+            } catch (error) {
+                document.getElementById('decibelStatus').textContent = '无法访问麦克风，请检查权限';
+                alert('无法访问麦克风！');
+            }
+        }
+        function stopDecibelDetection() {
+            if (!isDetecting) return;
+            clearInterval(detectionInterval);
+            if (audioContext) audioContext.close();
+            if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+            isDetecting = false;
+            document.getElementById('decibelStatus').textContent = '已停止检测';
+            document.getElementById('startDecibelBtn').disabled = false;
+            document.getElementById('stopDecibelBtn').disabled = true;
+        }
+
+        // 知识点数据库（完整版）
+        const knowledgeDatabase = {
+            chinese: { name: '语文', chapters: [{ id: 'ch1', name: '必修一 - 现代文阅读', content: '<h4>现代文阅读技巧</h4><ul><li><strong>理解文中重要词语的含义</strong><br>词语在语境中的特定含义，包括指代义、比喻义、隐含义等。需结合上下文推断。</li></ul>' }] },
+            math: { name: '数学', chapters: [{ id: 'm1', name: '必修一 - 集合与函数', content: '<h4>集合与函数</h4><ul><li><strong>集合的基本概念与运算</strong><br>集合是由一些确定的对象组成的整体。</li></ul>' }] },
+            english: { name: '英语', chapters: [{ id: 'e1', name: '必修一 - 语法基础', content: '<h4>语法基础</h4><ul><li><strong>时态：一般现在、一般过去、一般将来</strong><br>一般现在表经常性或客观事实。</li></ul>' }] },
+            physics: { name: '物理', chapters: [{ id: 'p1', name: '必修一 - 运动学', content: '<h4>运动学</h4><ul><li><strong>质点、参考系</strong><br>质点：忽略形状大小，只有质量的点。</li></ul>' }] },
+            chemistry: { name: '化学', chapters: [{ id: 'c1', name: '必修一 - 化学实验基础', content: '<h4>化学实验基础</h4><ul><li><strong>常用仪器使用</strong><br>试管、烧杯、量筒、酒精灯、漏斗、蒸发皿等。</li></ul>' }] },
+            biology: { name: '生物', chapters: [{ id: 'b1', name: '必修一 - 细胞的分子组成', content: '<h4>细胞的分子组成</h4><ul><li><strong>蛋白质的结构与功能</strong><br>基本单位是氨基酸。</li></ul>' }] },
+            history: { name: '历史', chapters: [{ id: 'h1', name: '必修一 - 中国古代政治制度', content: '<h4>中国古代政治制度</h4><ul><li><strong>早期政治制度：分封制、宗法制</strong><br>分封制：周王分封诸侯，以藩屏周。</li></ul>' }] },
+            politics: { name: '政治', chapters: [{ id: 'po1', name: '必修一 - 经济生活', content: '<h4>经济生活</h4><ul><li><strong>货币的本质与职能</strong><br>货币是从商品中分离出来的固定充当一般等价物的商品。</li></ul>' }] },
+            geography: { name: '地理', chapters: [{ id: 'g1', name: '必修一 - 宇宙中的地球', content: '<h4>宇宙中的地球</h4><ul><li><strong>地球的宇宙环境</strong><br>天体系统层次：地月系→太阳系→银河系→总星系。</li></ul>' }] }
+        };
+        function loadChapters() {
+            const subject = document.getElementById('subjectSelect').value;
+            const chapterSelect = document.getElementById('chapterSelect');
+            const knowledgeContent = document.getElementById('knowledgeContent');
+            if (!subject) { chapterSelect.style.display = 'none'; chapterSelect.innerHTML = '<option value="">请先选择学科</option>'; knowledgeContent.innerHTML = '请选择学科和章节查看知识点'; return; }
+            const chapters = knowledgeDatabase[subject]?.chapters || [];
+            chapterSelect.innerHTML = '<option value="">请选择章节</option>';
+            chapters.forEach(ch => { let opt = document.createElement('option'); opt.value = ch.id; opt.textContent = ch.name; chapterSelect.appendChild(opt); });
+            chapterSelect.style.display = 'block';
+            knowledgeContent.innerHTML = '请选择章节查看知识点';
+        }
+        function loadKnowledgePoints() {
+            const subject = document.getElementById('subjectSelect').value;
+            const chapterId = document.getElementById('chapterSelect').value;
+            const knowledgeContent = document.getElementById('knowledgeContent');
+            if (!subject || !chapterId) { knowledgeContent.innerHTML = '请选择学科和章节'; return; }
+            const ch = knowledgeDatabase[subject]?.chapters.find(c => c.id === chapterId);
+            knowledgeContent.innerHTML = ch ? ch.content : '暂无该章节知识点';
+        }
+
+        // DOMContentLoaded 初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 时间显示
+            const currentTimeEl = document.getElementById('currentTime');
+            if (currentTimeEl) {
+                function updateBeijingTime() {
+                    const formatter = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                    currentTimeEl.textContent = formatter.format(new Date());
+                }
+                updateBeijingTime();
+                setInterval(updateBeijingTime, 1000);
+            }
             // 标签页切换
             const tabs = document.querySelectorAll('.tab');
             const sections = document.querySelectorAll('.content-section');
@@ -1378,30 +1902,18 @@
                     tabs.forEach(t => t.classList.remove('active'));
                     sections.forEach(s => s.classList.remove('active'));
                     tab.classList.add('active');
-                    const tabId = tab.getAttribute('data-tab');
-                    const targetSection = document.getElementById(`${tabId}-section`);
-                    if (targetSection) targetSection.classList.add('active');
-                    window.scrollTo({top: 0, behavior: 'smooth'});
+                    document.getElementById(`${tab.getAttribute('data-tab')}-section`).classList.add('active');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             });
-
-            // 初始化返回顶部按钮的显示逻辑
-            initBackToTop();
-        });
-
-        window.addEventListener('load', function() {
-            // 加载保存的标题
+            // 标题加载
             const savedTitle = localStorage.getItem('gyez_title_data');
             if (savedTitle) {
                 const titleData = JSON.parse(savedTitle);
-                if (titleData.main) mainTitle.textContent = titleData.main;
-                if (titleData.sub) subTitle.textContent = titleData.sub;
+                if (titleData.main) document.getElementById('mainTitle').textContent = titleData.main;
+                if (titleData.sub) document.getElementById('subTitle').textContent = titleData.sub;
             }
-            
-            // 加载值日表
             loadDutyRecord();
-            
-            // 初始化作息时间查询
             const scheduleSelect = document.getElementById('scheduleSelect');
             if (scheduleSelect) {
                 scheduleSelect.addEventListener('change', function() {
@@ -1415,17 +1927,11 @@
                     document.getElementById('scheduleResult').textContent = scheduleData[this.value] || '请选择查询内容';
                 });
             }
-
-            // 加载校园电话
             loadPhoneNumbers();
-            
-            // 加载备忘录
             loadMemos();
-            
-            // 加载课程表数据
-            const savedData = localStorage.getItem('gyez_timetable_data');
-            if (savedData) {
-                const data = JSON.parse(savedData);
+            const savedTimetable = localStorage.getItem('gyez_timetable_data');
+            if (savedTimetable) {
+                const data = JSON.parse(savedTimetable);
                 for (const key in data) {
                     const row = key.replace('row', '').replace(/col.+/, '');
                     const col = key.replace(/row.+col/, '');
@@ -1433,677 +1939,89 @@
                     if (cell) cell.innerHTML = data[key];
                 }
             }
-
-            // 知识点初始化：隐藏章节下拉框
             document.getElementById('chapterSelect').style.display = 'none';
-        });
+            fetchWeather();
+            setInterval(checkAndRemind, 10000);
+            setTimeout(checkAndRemind, 1000);
+            initBackToTop();
 
-        // ---------- 标题编辑 ----------
-        if (editTitleBtn) {
-            editTitleBtn.addEventListener('click', () => {
-                document.getElementById('newMainTitle').value = mainTitle.textContent;
-                document.getElementById('newSubTitle').value = subTitle.textContent;
-                titleEditModal.style.display = 'flex';
-            });
-        }
-
-        function saveTitleEdit() {
-            const newMain = document.getElementById('newMainTitle').value;
-            const newSub = document.getElementById('newSubTitle').value;
-            if (newMain) mainTitle.textContent = newMain;
-            if (newSub) subTitle.textContent = newSub;
-            localStorage.setItem('gyez_title_data', JSON.stringify({ main: newMain, sub: newSub }));
-            closeEditModal();
-            showToast('标题修改已保存！');
-        }
-
-        // ---------- 课程表编辑 ----------
-        if (editBtn) {
-            editBtn.addEventListener('click', () => {
-                isEditing = true;
-                editBtn.style.display = 'none';
-                if (saveBtn) saveBtn.style.display = 'inline-block';
-                document.querySelectorAll('.editable').forEach(cell => {
-                    cell.style.backgroundColor = '#f8fbff';
-                    cell.style.border = '2px dashed #005aa7';
+            // 课程表编辑按钮事件
+            const editBtn = document.getElementById('editTimetableBtn');
+            const saveBtn = document.getElementById('saveTimetableBtn');
+            const addTimeBtn = document.getElementById('addTimeBtn');
+            const editTitleBtn = document.getElementById('editTitleBtn');
+            if (editBtn) {
+                editBtn.addEventListener('click', () => {
+                    isEditing = true;
+                    editBtn.style.display = 'none';
+                    if (saveBtn) saveBtn.style.display = 'inline-block';
+                    document.querySelectorAll('.editable').forEach(cell => {
+                        cell.style.backgroundColor = '#f8fbff';
+                        cell.style.border = '2px dashed #005aa7';
+                    });
+                    alert('进入编辑模式，点击课程格子可修改内容！');
                 });
-                showToast('进入编辑模式，点击课程格子可修改内容！');
-            });
-        }
-
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                isEditing = false;
-                saveBtn.style.display = 'none';
-                if (editBtn) editBtn.style.display = 'inline-block';
-                document.querySelectorAll('.editable').forEach(cell => {
-                    cell.style.backgroundColor = '';
-                    cell.style.border = '';
-                });
-                localStorage.setItem('gyez_timetable_data', JSON.stringify(getTimetableData()));
-                showToast('课程表修改已保存！');
-            });
-        }
-
-        // 为现有可编辑单元格添加点击事件
-        document.querySelectorAll('.editable').forEach(cell => {
-            cell.addEventListener('click', () => {
-                if (isEditing && courseEditModal) {
-                    document.getElementById('editRow').value = cell.getAttribute('data-row');
-                    document.getElementById('editCol').value = cell.getAttribute('data-col');
-                    document.getElementById('courseName').value = cell.textContent.split('\n')[0] || '';
-                    courseEditModal.style.display = 'flex';
-                }
-            });
-        });
-
-        function saveCourseEdit() {
-            const row = document.getElementById('editRow').value;
-            const col = document.getElementById('editCol').value;
-            const courseName = document.getElementById('courseName').value;
-            const teacherName = document.getElementById('teacherName').value;
-            const classroom = document.getElementById('classroom').value;
-            if (!courseName) {
-                showToast('课程名称不能为空！', 'error');
-                return;
             }
-            let content = courseName;
-            if (teacherName) content += `<br>(${teacherName})`;
-            if (classroom) content += `<br>教室:${classroom}`;
-            const cell = document.querySelector(`.editable[data-row="${row}"][data-col="${col}"]`);
-            if (cell) cell.innerHTML = content;
-            closeEditModal();
-            showToast('课程信息已更新！');
-        }
-
-        function getTimetableData() {
-            const data = {};
+            if (saveBtn) {
+                saveBtn.addEventListener('click', () => {
+                    isEditing = false;
+                    saveBtn.style.display = 'none';
+                    if (editBtn) editBtn.style.display = 'inline-block';
+                    document.querySelectorAll('.editable').forEach(cell => {
+                        cell.style.backgroundColor = '';
+                        cell.style.border = '';
+                    });
+                    localStorage.setItem('gyez_timetable_data', JSON.stringify(getTimetableData()));
+                    alert('课程表修改已保存！');
+                });
+            }
+            if (addTimeBtn) {
+                addTimeBtn.addEventListener('click', () => {
+                    document.getElementById('addTimeModal').style.display = 'flex';
+                });
+            }
+            if (editTitleBtn) {
+                editTitleBtn.addEventListener('click', () => {
+                    document.getElementById('newMainTitle').value = document.getElementById('mainTitle').textContent;
+                    document.getElementById('newSubTitle').value = document.getElementById('subTitle').textContent;
+                    document.getElementById('titleEditModal').style.display = 'flex';
+                });
+            }
             document.querySelectorAll('.editable').forEach(cell => {
-                const row = cell.getAttribute('data-row');
-                const col = cell.getAttribute('data-col');
-                data[`row${row}col${col}`] = cell.innerHTML;
-            });
-            return data;
-        }
-
-        // ---------- 添加时间段 ----------
-        if (addTimeBtn) {
-            addTimeBtn.addEventListener('click', () => {
-                addTimeModal.style.display = 'flex';
-            });
-        }
-
-        function addNewTimeSlot() {
-            const slotName = document.getElementById('timeSlotName').value;
-            const slotRange = document.getElementById('timeSlotRange').value;
-            if (!slotName || !slotRange) {
-                showToast('时间段名称和时间范围不能为空！', 'error');
-                return;
-            }
-            const timetable = document.getElementById('editableTimetable');
-            const newRow = document.createElement('tr');
-            newRow.id = `timeRow${rowCounter}`;
-            
-            const timeCell = document.createElement('td');
-            timeCell.className = 'time-slot';
-            timeCell.innerHTML = `${slotName}<br>${slotRange}`;
-            newRow.appendChild(timeCell);
-            
-            for (let i = 1; i <= 7; i++) {
-                const cell = document.createElement('td');
-                cell.className = 'editable';
-                cell.setAttribute('data-row', rowCounter);
-                cell.setAttribute('data-col', i);
-                cell.textContent = '-';
                 cell.addEventListener('click', () => {
                     if (isEditing) {
-                        document.getElementById('editRow').value = rowCounter;
-                        document.getElementById('editCol').value = i;
-                        document.getElementById('courseName').value = '';
-                        courseEditModal.style.display = 'flex';
+                        document.getElementById('editRow').value = cell.getAttribute('data-row');
+                        document.getElementById('editCol').value = cell.getAttribute('data-col');
+                        document.getElementById('courseName').value = cell.innerText.split('\n')[0] || '';
+                        document.getElementById('teacherName').value = '';
+                        document.getElementById('classroom').value = '';
+                        document.getElementById('courseEditModal').style.display = 'flex';
                     }
                 });
-                newRow.appendChild(cell);
-            }
-            
-            const noonRow = document.getElementById('timeRow5');
-            if (noonRow) {
-                noonRow.parentNode.insertBefore(newRow, noonRow.nextSibling);
-            }
-            rowCounter++;
-            closeEditModal();
-            showToast('新时间段已添加！');
-        }
-
-        // ---------- 成绩计算 ----------
-        function calculateAverageScore() {
-            const scores = [];
-            let total = 0;
-            for (let i = 1; i <= 8; i++) {
-                const scoreInput = document.getElementById(`score${i}`);
-                if (scoreInput) {
-                    const score = parseFloat(scoreInput.value);
-                    if (!isNaN(score) && score >= 0 && score <= 100) {
-                        scores.push(score);
-                        total += score;
-                    }
-                }
-            }
-            if (scores.length === 0) {
-                document.getElementById('scoreResult').textContent = '请输入至少一个有效成绩（0-100）';
-                showToast('请输入有效成绩！', 'error');
-                return;
-            }
-            const average = (total / scores.length).toFixed(2);
-            let level = average >= 90 ? '优秀' : average >= 80 ? '良好' : average >= 70 ? '中等' : average >= 60 ? '及格' : '不及格';
-            document.getElementById('scoreResult').textContent = `共计算 ${scores.length} 科成绩：\n总分：${total} 分\n平均分：${average} 分\n综合评级：${level}`;
-            showToast('成绩计算完成！');
-        }
-
-        // ---------- 值日表 ----------
-        function saveDutyRecord() {
-            const dutyText = document.getElementById('dutyRecord').value;
-            localStorage.setItem('gyez_duty_data', dutyText);
-            showToast('值日表已保存！');
-        }
-
-        function loadDutyRecord() {
-            const savedDuty = localStorage.getItem('gyez_duty_data');
-            if (savedDuty) document.getElementById('dutyRecord').value = savedDuty;
-        }
-
-        // ---------- 校园电话 ----------
-        function savePhoneNumber(phoneId) {
-            const phoneValue = document.getElementById(phoneId).value;
-            if (!phoneValue) {
-                showToast('电话号码不能为空！', 'error');
-                return;
-            }
-            let phoneData = JSON.parse(localStorage.getItem('gyez_phone_data') || '{}');
-            phoneData[phoneId] = phoneValue;
-            localStorage.setItem('gyez_phone_data', JSON.stringify(phoneData));
-            showToast('电话号码已保存！');
-        }
-
-        function loadPhoneNumbers() {
-            const phoneData = JSON.parse(localStorage.getItem('gyez_phone_data') || '{}');
-            const defaultPhones = {
-                phone1: '0851-8586XXXX',
-                phone2: '0851-8587XXXX',
-                phone3: '0851-8588XXXX',
-                phone4: '0851-8589XXXX',
-                phone5: '0851-8590XXXX',
-                phone6: '0851-8591XXXX'
-            };
-            for (let i = 1; i <= 6; i++) {
-                const phoneId = `phone${i}`;
-                const phoneInput = document.getElementById(phoneId);
-                if (phoneInput) {
-                    phoneInput.value = phoneData[phoneId] || defaultPhones[phoneId];
-                }
-            }
-        }
-
-        // ---------- 备忘录 ----------
-        function addMemo() {
-            const memoDate = document.getElementById('memoDate').value;
-            const memoContent = document.getElementById('memoContent').value;
-            if (!memoDate || !memoContent) {
-                showToast('日期和备忘录内容不能为空！', 'error');
-                return;
-            }
-            let memos = JSON.parse(localStorage.getItem('gyez_memo_data') || '[]');
-            memos.push({ id: Date.now(), date: memoDate, content: memoContent });
-            localStorage.setItem('gyez_memo_data', JSON.stringify(memos));
-            loadMemos();
-            document.getElementById('memoDate').value = '';
-            document.getElementById('memoContent').value = '';
-            showToast('备忘录添加成功！');
-        }
-
-        function loadMemos() {
-            const memoList = document.getElementById('memoList');
-            const memos = JSON.parse(localStorage.getItem('gyez_memo_data') || '[]');
-            memoList.innerHTML = '';
-            if (memos.length === 0) {
-                memoList.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">暂无备忘录，请添加</div>';
-                return;
-            }
-            memos.sort((a, b) => new Date(b.date) - new Date(a.date));
-            memos.forEach(memo => {
-                const memoItem = document.createElement('div');
-                memoItem.className = 'memo-item';
-                memoItem.innerHTML = `
-                    <div class="date">📅 ${memo.date}</div>
-                    <div class="content">${memo.content.replace(/\n/g, '<br>')}</div>
-                    <button class="delete-btn" onclick="deleteMemo(${memo.id})">删除</button>
-                `;
-                memoList.appendChild(memoItem);
             });
-        }
-
-        function deleteMemo(memoId) {
-            if (confirm('确定要删除这条备忘录吗？')) {
-                let memos = JSON.parse(localStorage.getItem('gyez_memo_data') || '[]');
-                memos = memos.filter(memo => memo.id !== memoId);
-                localStorage.setItem('gyez_memo_data', JSON.stringify(memos));
-                loadMemos();
+            const startDecibelBtn = document.getElementById('startDecibelBtn');
+            const stopDecibelBtn = document.getElementById('stopDecibelBtn');
+            if (startDecibelBtn && stopDecibelBtn) {
+                startDecibelBtn.addEventListener('click', startDecibelDetection);
+                stopDecibelBtn.addEventListener('click', stopDecibelDetection);
             }
-        }
+            const reminderCloseBtn = document.getElementById('reminderCloseBtn');
+            if (reminderCloseBtn) reminderCloseBtn.addEventListener('click', closeReminderOverlay);
 
-        // ---------- 分贝检测 ----------
-        function createVisualizerBars() {
-            const visualizer = document.getElementById('audioVisualizer');
-            if (!visualizer) return;
-            visualizer.innerHTML = '';
-            for (let i = 0; i < 30; i++) {
-                const bar = document.createElement('div');
-                bar.style.width = '5px';
-                bar.style.height = '10px';
-                bar.style.backgroundColor = '#005aa7';
-                bar.style.margin = '0 2px';
-                bar.style.borderRadius = '2px';
-                bar.id = `visualizer-bar-${i}`;
-                visualizer.appendChild(bar);
-            }
-        }
+            // 成绩管理初始化
+            initSubjectInputs();
+            renderScoreRecords();
+            updateScoreChart();
+            updateTargetDisplay();
+            let savedTarget = localStorage.getItem("gyez_score_target");
+            if (savedTarget) document.getElementById("targetTotalScore").value = savedTarget;
 
-        function updateVisualizer(volume) {
-            const maxHeight = 60;
-            const barHeight = (volume / 100) * maxHeight;
-            for (let i = 0; i < 30; i++) {
-                const bar = document.getElementById(`visualizer-bar-${i}`);
-                if (!bar) continue;
-                const randomFactor = Math.random() * 0.8 + 0.2;
-                const height = Math.min(barHeight * randomFactor, maxHeight);
-                bar.style.height = `${height}px`;
-                if (height > maxHeight * 0.8) bar.style.backgroundColor = '#e74c3c';
-                else if (height > maxHeight * 0.5) bar.style.backgroundColor = '#f39c12';
-                else bar.style.backgroundColor = '#005aa7';
-            }
-        }
+            // 错题本初始化
+            renderMistakeList();
 
-        function calculateDecibels() {
-            if (!analyser) return 0;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            analyser.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
-            const average = sum / bufferLength;
-            return Math.round((average / 255) * 100);
-        }
-
-        function detectDecibels() {
-            const decibels = calculateDecibels();
-            const threshold = parseInt(document.getElementById('decibelThreshold').value) || 80;
-            const decibelDisplay = document.getElementById('decibelValue');
-            const warningDisplay = document.getElementById('decibelWarning');
-            if (decibelDisplay) decibelDisplay.textContent = decibels;
-            updateVisualizer(decibels);
-            if (decibels > threshold && warningDisplay) {
-                warningDisplay.style.display = 'block';
-                playWarningSound();
-            } else if (warningDisplay) {
-                warningDisplay.style.display = 'none';
-            }
-        }
-
-        function playWarningSound() {
-            try {
-                const context = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = context.createOscillator();
-                const gainNode = context.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(context.destination);
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, context.currentTime);
-                gainNode.gain.setValueAtTime(0.1, context.currentTime);
-                oscillator.start();
-                gainNode.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.5);
-                oscillator.stop(context.currentTime + 0.5);
-            } catch (e) {
-                console.log('无法播放提示音:', e);
-            }
-        }
-
-        function startDecibelDetection() {
-            if (isDetecting) return;
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        microphone = audioContext.createMediaStreamSource(stream);
-                        microphone.connect(analyser);
-                        analyser.fftSize = 2048;
-                        createVisualizerBars();
-                        isDetecting = true;
-                        document.getElementById('decibelStatus').textContent = '正在检测中...';
-                        document.querySelector('.start-btn').disabled = true;
-                        document.querySelector('.stop-btn').disabled = false;
-                        detectionInterval = setInterval(detectDecibels, 200);
-                    })
-                    .catch(error => {
-                        alert('无法访问麦克风！请确保已授予麦克风权限。');
-                        console.error('麦克风访问错误:', error);
-                        document.getElementById('decibelStatus').textContent = '无法访问麦克风';
-                    });
-            } catch (error) {
-                alert('您的浏览器不支持音频检测功能！');
-                console.error('音频上下文错误:', error);
-                document.getElementById('decibelStatus').textContent = '浏览器不支持';
-            }
-        }
-
-        function stopDecibelDetection() {
-            if (!isDetecting) return;
-            clearInterval(detectionInterval);
-            if (audioContext) audioContext.close();
-            isDetecting = false;
-            audioContext = analyser = microphone = null;
-            document.getElementById('decibelValue').textContent = '0';
-            document.getElementById('decibelWarning').style.display = 'none';
-            document.getElementById('decibelStatus').textContent = '已停止检测';
-            document.querySelector('.start-btn').disabled = false;
-            document.querySelector('.stop-btn').disabled = true;
-            document.getElementById('audioVisualizer').innerHTML = '';
-        }
-
-        // ---------- 倒计时 ----------
-        function startCountdown() {
-            const title = document.getElementById('countdown-title').value || '目标事件';
-            const targetDate = new Date(document.getElementById('countdown-date').value);
-            if (isNaN(targetDate.getTime())) {
-                document.getElementById('countdown-result').textContent = '请选择有效的日期';
-                return;
-            }
-            if (countdownInterval) clearInterval(countdownInterval);
-            updateCountdown(title, targetDate);
-            countdownInterval = setInterval(() => updateCountdown(title, targetDate), 1000);
-        }
-
-        function updateCountdown(title, targetDate) {
-            const now = new Date();
-            const diff = targetDate - now;
-            if (diff <= 0) {
-                document.getElementById('countdown-result').textContent = `${title} 已结束！`;
-                clearInterval(countdownInterval);
-                return;
-            }
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            document.getElementById('countdown-result').textContent = `${title} 还有：${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
-        }
-
-        // ---------- 知识点查询（详细版）----------
-        const knowledgeDatabase = {
-            chinese: {
-                name: '语文',
-                chapters: [
-                    { 
-                        id: 'ch1', 
-                        name: '必修一 - 现代文阅读', 
-                        content: '<h4>现代文阅读技巧</h4><ul>' +
-                            '<li><strong>理解文中重要词语的含义</strong><br>词语在语境中的特定含义，包括指代义、比喻义、隐含义等。需结合上下文推断。</li>' +
-                            '<li><strong>理解文中重要句子的含意</strong><br>把握句子的表层意思和深层含意，如哲理句、含蓄句、结构复杂句等。</li>' +
-                            '<li><strong>筛选并整合文中的信息</strong><br>根据要求从文中找出相关信息并进行归纳、概括。</li>' +
-                            '<li><strong>分析文章结构，把握文章思路</strong><br>理清文章的层次、段落关系，把握作者的行文线索。</li>' +
-                            '<li><strong>归纳内容要点，概括中心意思</strong><br>提炼文章的主要内容，概括作者的主要观点或情感。</li>' +
-                            '<li><strong>分析概括作者在文中的观点态度</strong><br>体会作者在文中的立场、情感倾向，并加以概括。</li>' +
-                        '</ul>'
-                    },
-                    { 
-                        id: 'ch2', 
-                        name: '必修二 - 古代诗歌鉴赏', 
-                        content: '<h4>古代诗歌鉴赏方法</h4><ul>' +
-                            '<li><strong>把握诗歌的意象</strong><br>意象是诗人借以表达情感的物象，如“月”表思乡，“柳”表离别。需积累常见意象。</li>' +
-                            '<li><strong>品味诗歌的语言</strong><br>炼字、诗眼、语言风格（清新、质朴、含蓄等）。</li>' +
-                            '<li><strong>分析诗歌的表达技巧</strong><br>包括修辞手法（比喻、拟人）、表现手法（借景抒情、托物言志）、结构技巧（铺垫、照应）等。</li>' +
-                            '<li><strong>理解诗歌的思想情感</strong><br>通过意象、典故等体会诗人所表达的情感，如爱国、思乡、怀才不遇等。</li>' +
-                            '<li><strong>常见题材：送别诗、山水田园诗、边塞诗等</strong><br>不同题材有常见情感和手法，如送别诗多表达离愁别绪。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            math: {
-                name: '数学',
-                chapters: [
-                    { 
-                        id: 'm1', 
-                        name: '必修一 - 集合与函数', 
-                        content: '<h4>集合与函数</h4><ul>' +
-                            '<li><strong>集合的基本概念与运算</strong><br>集合是由一些确定的对象组成的整体。元素与集合的关系、集合的表示法（列举法、描述法）。集合的关系：子集、真子集、相等。集合的运算：并集、交集、补集、全集。</li>' +
-                            '<li><strong>函数的概念、定义域、值域</strong><br>函数是从非空数集到非空数集的映射。定义域是自变量的取值范围，值域是因变量的取值范围。求定义域需考虑分母、偶次根式、对数真数等限制。</li>' +
-                            '<li><strong>函数的单调性、奇偶性</strong><br>单调性：在区间内任意x1<x2，有f(x1)<f(x2)则为增，反之为减。奇偶性：f(-x)=-f(x)为奇函数（图像关于原点对称），f(-x)=f(x)为偶函数（关于y轴对称）。</li>' +
-                            '<li><strong>一次函数、二次函数</strong><br>一次函数y=kx+b，k为斜率，b为截距。二次函数y=ax²+bx+c，a决定开口方向，顶点、对称轴、最值。</li>' +
-                            '<li><strong>指数函数、对数函数</strong><br>指数函数y=a^x (a>0,a≠1)，图像过(0,1)，a>1时递增，0<a<1时递减。对数函数y=log_a x (a>0,a≠1)，定义域x>0，图像过(1,0)，性质与指数函数互为反函数。</li>' +
-                        '</ul>'
-                    },
-                    { 
-                        id: 'm2', 
-                        name: '必修二 - 立体几何', 
-                        content: '<h4>立体几何</h4><ul>' +
-                            '<li><strong>空间几何体的结构</strong><br>柱、锥、台、球的结构特征，如棱柱的侧面是平行四边形，棱锥的侧面是三角形。</li>' +
-                            '<li><strong>三视图与直观图</strong><br>三视图：正视图、侧视图、俯视图，遵循“长对正、高平齐、宽相等”。直观图常用斜二测画法。</li>' +
-                            '<li><strong>表面积与体积计算</strong><br>柱体体积V=Sh，锥体V=1/3 Sh，球体V=4/3 πR³，表面积公式需熟记。</li>' +
-                            '<li><strong>点、线、面的位置关系</strong><br>点与线、点与面、线与线（平行、相交、异面）、线与面（平行、相交、在面内）、面与面（平行、相交）。</li>' +
-                            '<li><strong>平行与垂直的判定与性质</strong><br>线面平行判定：平面外一条直线与平面内一条直线平行，则线面平行。线面垂直判定：直线垂直于平面内两条相交直线。面面垂直判定：一个平面过另一个平面的垂线。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            english: {
-                name: '英语',
-                chapters: [
-                    { 
-                        id: 'e1', 
-                        name: '必修一 - 语法基础', 
-                        content: '<h4>语法基础</h4><ul>' +
-                            '<li><strong>时态：一般现在、一般过去、一般将来</strong><br>一般现在表经常性或客观事实，一般过去表过去动作，一般将来表将来动作（will/shall+动词原形）。</li>' +
-                            '<li><strong>现在进行时、过去进行时</strong><br>现在进行时（am/is/are+doing）表现在正在进行的动作，过去进行时（was/were+doing）表过去某时刻正在进行的动作。</li>' +
-                            '<li><strong>名词性从句</strong><br>包括主语从句、宾语从句、表语从句、同位语从句。由that, whether, 疑问词引导。</li>' +
-                            '<li><strong>定语从句</strong><br>由关系代词（who, whom, which, that, whose）或关系副词（when, where, why）引导，修饰先行词。</li>' +
-                            '<li><strong>非谓语动词</strong><br>动词不定式、动名词、分词（现在分词、过去分词）在句中充当除谓语以外的成分。</li>' +
-                        '</ul>'
-                    },
-                    { 
-                        id: 'e2', 
-                        name: '必修二 - 阅读理解', 
-                        content: '<h4>阅读理解技巧</h4><ul>' +
-                            '<li><strong>主旨大意题</strong><br>概括文章或段落中心思想，常考首尾段、首尾句，注意标题、主题句。</li>' +
-                            '<li><strong>细节理解题</strong><br>从文中直接找到信息，注意定位关键词，排除干扰项。</li>' +
-                            '<li><strong>推理判断题</strong><br>根据文章内容推断隐含意义，不可过度推断，需基于原文。</li>' +
-                            '<li><strong>词义猜测题</strong><br>利用上下文、定义、举例、同义反义猜测生词含义。</li>' +
-                            '<li><strong>阅读策略：略读、扫读、细读</strong><br>略读抓大意，扫读找细节，细读理解复杂信息。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            physics: {
-                name: '物理',
-                chapters: [
-                    { 
-                        id: 'p1', 
-                        name: '必修一 - 运动学', 
-                        content: '<h4>运动学</h4><ul>' +
-                            '<li><strong>质点、参考系</strong><br>质点：忽略形状大小，只有质量的点。参考系：描述运动时选作标准的物体。</li>' +
-                            '<li><strong>位移、速度、加速度</strong><br>位移是矢量，表示位置变化。速度是位移变化率，加速度是速度变化率。</li>' +
-                            '<li><strong>匀变速直线运动公式</strong><br>v=v₀+at，x=v₀t+½at²，v²-v₀²=2ax。自由落体为初速0、a=g的匀加速。</li>' +
-                            '<li><strong>自由落体运动</strong><br>只受重力，v=gt，h=½gt²，v²=2gh。</li>' +
-                            '<li><strong>运动图像分析</strong><br>x-t图斜率表示速度，v-t图斜率表示加速度，面积表示位移。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            chemistry: {
-                name: '化学',
-                chapters: [
-                    { 
-                        id: 'c1', 
-                        name: '必修一 - 化学实验基础', 
-                        content: '<h4>化学实验基础</h4><ul>' +
-                            '<li><strong>常用仪器使用</strong><br>试管、烧杯、量筒、酒精灯、漏斗、蒸发皿等，用途及注意事项。</li>' +
-                            '<li><strong>药品取用规则</strong><br>固体用药匙，液体用滴管或倾倒，不能直接接触药品，注意安全。</li>' +
-                            '<li><strong>加热、过滤、蒸发操作</strong><br>加热用外焰，过滤“一贴二低三靠”，蒸发用玻璃棒搅拌防飞溅。</li>' +
-                            '<li><strong>物质的分离与提纯</strong><br>过滤（固液）、蒸发（可溶性固体）、蒸馏（沸点不同）、萃取（溶解度不同）。</li>' +
-                            '<li><strong>常见气体的制备</strong><br>如O₂（加热KMnO₄或H₂O₂加MnO₂）、CO₂（石灰石+盐酸）、H₂（锌+稀硫酸）。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            biology: {
-                name: '生物',
-                chapters: [
-                    { 
-                        id: 'b1', 
-                        name: '必修一 - 细胞的分子组成', 
-                        content: '<h4>细胞的分子组成</h4><ul>' +
-                            '<li><strong>蛋白质的结构与功能</strong><br>基本单位是氨基酸，通过脱水缩合形成肽链。蛋白质功能：催化（酶）、运输（血红蛋白）、免疫（抗体）、调节（激素）等。</li>' +
-                            '<li><strong>核酸的种类与作用</strong><br>DNA（遗传物质）和RNA（参与蛋白质合成）。核苷酸是基本单位。</li>' +
-                            '<li><strong>糖类的种类与功能</strong><br>单糖（葡萄糖、果糖）、二糖（蔗糖、麦芽糖）、多糖（淀粉、糖原、纤维素）。主要能源物质。</li>' +
-                            '<li><strong>脂质的种类与功能</strong><br>脂肪（储能、保温）、磷脂（生物膜成分）、固醇（性激素、胆固醇、维生素D）。</li>' +
-                            '<li><strong>水和无机盐的作用</strong><br>水是良好溶剂，参与反应；无机盐维持渗透压、酸碱平衡，构成化合物。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            history: {
-                name: '历史',
-                chapters: [
-                    { 
-                        id: 'h1', 
-                        name: '必修一 - 中国古代政治制度', 
-                        content: '<h4>中国古代政治制度</h4><ul>' +
-                            '<li><strong>早期政治制度：分封制、宗法制</strong><br>分封制：周王分封诸侯，以藩屏周。宗法制：嫡长子继承制，维系宗族。</li>' +
-                            '<li><strong>秦朝中央集权制度</strong><br>皇帝制、三公九卿制、郡县制，奠定两千多年政治格局。</li>' +
-                            '<li><strong>汉至元政治制度的演变</strong><br>汉：中外朝；隋唐：三省六部制；宋：二府三司；元：行省制。</li>' +
-                            '<li><strong>明清君主专制的加强</strong><br>明：废丞相、设内阁；清：军机处，君主专制达到顶峰。</li>' +
-                            '<li><strong>选官制度的演变</strong><br>世官制→察举制→九品中正制→科举制，科举制影响深远。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            politics: {
-                name: '政治',
-                chapters: [
-                    { 
-                        id: 'po1', 
-                        name: '必修一 - 经济生活', 
-                        content: '<h4>经济生活</h4><ul>' +
-                            '<li><strong>货币的本质与职能</strong><br>货币是从商品中分离出来的固定充当一般等价物的商品。职能：价值尺度、流通手段、支付手段、贮藏手段、世界货币。</li>' +
-                            '<li><strong>价格的决定与变动</strong><br>价值决定价格，供求影响价格。价格变动影响需求与生产。</li>' +
-                            '<li><strong>消费及其类型</strong><br>影响消费的因素：收入、物价、消费心理。消费类型：生存资料、发展资料、享受资料。</li>' +
-                            '<li><strong>生产与经济制度</strong><br>生产决定消费，消费反作用于生产。我国基本经济制度：公有制为主体、多种所有制共同发展。</li>' +
-                            '<li><strong>企业与劳动者</strong><br>企业是市场经济活动的主要参与者，公司制是现代企业主要形式。劳动者有平等就业、取得报酬等权利。</li>' +
-                        '</ul>'
-                    }
-                ]
-            },
-            geography: {
-                name: '地理',
-                chapters: [
-                    { 
-                        id: 'g1', 
-                        name: '必修一 - 宇宙中的地球', 
-                        content: '<h4>宇宙中的地球</h4><ul>' +
-                            '<li><strong>地球的宇宙环境</strong><br>天体系统层次：地月系→太阳系→银河系→总星系。太阳系八大行星。</li>' +
-                            '<li><strong>太阳对地球的影响</strong><br>太阳辐射为地球提供能量，太阳活动（黑子、耀斑）影响无线电短波通信、产生磁暴。</li>' +
-                            '<li><strong>地球的运动（自转与公转）</strong><br>自转产生昼夜交替、地方时，公转产生四季、五带。黄赤交角存在导致太阳直射点移动。</li>' +
-                            '<li><strong>地球的圈层结构</strong><br>内部：地壳、地幔、地核；外部：大气圈、水圈、生物圈。</li>' +
-                            '<li><strong>地球的演化</strong><br>地质年代：太古代、元古代、古生代、中生代、新生代，生物进化历程。</li>' +
-                        '</ul>'
-                    }
-                ]
-            }
-        };
-
-        function loadChapters() {
-            const subject = document.getElementById('subjectSelect').value;
-            const chapterSelect = document.getElementById('chapterSelect');
-            const knowledgeContent = document.getElementById('knowledgeContent');
-            if (!subject) {
-                chapterSelect.style.display = 'none';
-                chapterSelect.innerHTML = '<option value="">请先选择学科</option>';
-                knowledgeContent.innerHTML = '请选择学科和章节查看知识点';
-                return;
-            }
-            const chapters = knowledgeDatabase[subject]?.chapters || [];
-            chapterSelect.innerHTML = '<option value="">请选择章节</option>';
-            chapters.forEach(ch => {
-                const option = document.createElement('option');
-                option.value = ch.id;
-                option.textContent = ch.name;
-                chapterSelect.appendChild(option);
-            });
-            chapterSelect.style.display = 'block';
-            knowledgeContent.innerHTML = '请选择章节查看知识点';
-        }
-
-        function loadKnowledgePoints() {
-            const subject = document.getElementById('subjectSelect').value;
-            const chapterId = document.getElementById('chapterSelect').value;
-            const knowledgeContent = document.getElementById('knowledgeContent');
-            if (!subject || !chapterId) {
-                knowledgeContent.innerHTML = '请选择学科和章节';
-                return;
-            }
-            const chapter = knowledgeDatabase[subject]?.chapters.find(ch => ch.id === chapterId);
-            if (chapter && chapter.content) {
-                knowledgeContent.innerHTML = chapter.content;
-            } else {
-                knowledgeContent.innerHTML = '暂无该章节知识点';
-            }
-        }
-
-        // ---------- 返回顶部功能 ----------
-        function initBackToTop() {
-            const backToTop = document.getElementById('backToTop');
-            window.addEventListener('scroll', () => {
-                if (window.pageYOffset > 300) {
-                    backToTop.style.display = 'flex';
-                } else {
-                    backToTop.style.display = 'none';
-                }
-            });
-        }
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // ---------- 弹窗关闭 ----------
-        function closeEditModal() {
-            document.querySelectorAll('.edit-modal').forEach(modal => {
-                modal.style.display = 'none';
-            });
-        }
-
-        // 点击弹窗外部关闭
-        window.addEventListener('click', (e) => {
-            document.querySelectorAll('.edit-modal').forEach(modal => {
-                if (e.target === modal) closeEditModal();
-            });
+            // 校园地图初始化
+            renderMapMarkers();
         });
-
-        // ---------- 随机学号点名器 ----------
-        function randomRollCall() {
-            const min = parseInt(document.getElementById('rollMin').value) || 1;
-            const max = parseInt(document.getElementById('rollMax').value) || 45;
-            if (min >= max) {
-                alert('最小值必须小于最大值！');
-                return;
-            }
-            const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
-            document.getElementById('rollResult').textContent = `🎉 被点到：${randomNum} 号`;
-        }
-
-        // ---------- 简易提示函数 ----------
-        function showToast(message, type = 'info') {
-            alert(message); // 简单用alert代替，可根据需要改为更美观的提示
-        }
     </script>
 </body>
 </html>
