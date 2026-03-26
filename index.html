@@ -6,812 +6,150 @@
     <title>校园小助手 - 高中学习好帮手</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- 引入 Chart.js 轻量图表库 -->
+    <!-- Chart.js 轻量图表库 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* 原有样式保持不变（仅增加地图导航样式） */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
-            transition: all 0.3s ease;
-        }
+        /* 全局样式保持不变，仅增加错题本所需样式及改进 */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif; transition: all 0.3s ease; }
         body {
             background: url('https://images.unsplash.com/photo-1568745636603-5fe38d2bc4c5?q=80&w=1935&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
-            padding: 10px;
-            position: relative;
-            min-height: 100vh;
+            background-size: cover; padding: 10px; position: relative; min-height: 100vh;
         }
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.88);
-            z-index: -1;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            overflow: hidden;
-            border: 2px solid #005aa7;
-            margin-bottom: 20px;
-            transform: translateY(0);
-            animation: fadeIn 0.5s ease forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .header {
-            background: linear-gradient(135deg, #005aa7, #2980b9);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(4px);
-            padding: 6px 15px;
-            border-radius: 40px;
-            border: 1px solid rgba(255,255,255,0.25);
-            flex-wrap: wrap;
-            min-width: 200px;
-        }
-        .weather-info {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: white;
-            font-size: 14px;
-            white-space: nowrap;
-        }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.88); z-index: -1; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; border: 2px solid #005aa7; margin-bottom: 20px; transform: translateY(0); animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .header { background: linear-gradient(135deg, #005aa7, #2980b9); color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .header-left { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px); padding: 6px 15px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.25); flex-wrap: wrap; min-width: 200px; }
+        .weather-info { display: flex; align-items: center; gap: 6px; color: white; font-size: 14px; white-space: nowrap; }
         .weather-icon { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
-        .weather-temp {
-            font-weight: bold;
-            background: rgba(255,255,255,0.3);
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-        .current-time {
-            display: flex;
-            align-items: center;
-            color: white;
-            font-size: 15px;
-            font-weight: 500;
-            border-left: 1px solid rgba(255,255,255,0.4);
-            padding-left: 12px;
-            margin-left: 4px;
-            white-space: nowrap;
-            letter-spacing: 0.5px;
-        }
-        .current-time::before {
-            content: '🕒';
-            margin-right: 5px;
-            font-size: 16px;
-        }
-        .header-center {
-            text-align: center;
-            flex: 1 1 auto;
-            min-width: 200px;
-        }
+        .weather-temp { font-weight: bold; background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 20px; }
+        .current-time { display: flex; align-items: center; color: white; font-size: 15px; font-weight: 500; border-left: 1px solid rgba(255,255,255,0.4); padding-left: 12px; margin-left: 4px; white-space: nowrap; letter-spacing: 0.5px; }
+        .current-time::before { content: '🕒'; margin-right: 5px; font-size: 16px; }
+        .header-center { text-align: center; flex: 1 1 auto; min-width: 200px; }
         .header-center h1 { font-size: 1.5rem; line-height: 1.3; margin-bottom: 4px; }
         .header-center p { font-size: 0.9rem; opacity: 0.9; }
-        .edit-title-btn {
-            background-color: rgba(255,255,255,0.3);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 13px;
-            white-space: nowrap;
-            border: 1px solid rgba(255,255,255,0.2);
-            font-weight: 500;
-        }
-        .edit-title-btn:hover {
-            background-color: rgba(255,255,255,0.5);
-            transform: scale(1.05);
-        }
+        .edit-title-btn { background-color: rgba(255,255,255,0.3); color: white; border: none; padding: 6px 14px; border-radius: 30px; cursor: pointer; font-size: 13px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.2); font-weight: 500; }
+        .edit-title-btn:hover { background-color: rgba(255,255,255,0.5); transform: scale(1.05); }
         @media (max-width: 700px) {
             .header { flex-direction: column; text-align: center; padding: 15px 10px; }
             .header-left { width: 100%; justify-content: center; order: 1; }
             .header-center { order: 2; width: 100%; }
             .edit-title-btn { order: 3; margin-top: 5px; }
-            .current-time {
-                border-left: none; padding-left: 0; margin-left: 0;
-                border-top: 1px solid rgba(255,255,255,0.3);
-                padding-top: 6px; margin-top: 4px;
-                width: 100%; justify-content: center;
-            }
+            .current-time { border-left: none; padding-left: 0; margin-left: 0; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px; margin-top: 4px; width: 100%; justify-content: center; }
         }
         @media (max-width: 480px) {
             .header-center h1 { font-size: 1.2rem; }
             .header-center p { font-size: 0.8rem; }
             .header-left { font-size: 13px; padding: 5px 10px; }
         }
-        .loader {
-            display: none;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #005aa7;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .tabs {
-            display: flex;
-            background: #e6f0fa;
-            border-bottom: 2px solid #005aa7;
-            overflow-x: auto;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .tab {
-            flex: 1;
-            min-width: 80px;
-            text-align: center;
-            padding: 15px 10px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            white-space: nowrap;
-            position: relative;
-        }
-        .tab.active {
-            border-bottom: 3px solid #005aa7;
-            color: #005aa7;
-            font-weight: bold;
-            background-color: white;
-        }
-        .tab:hover {
-            background-color: #f0f8ff;
-            transform: translateY(-2px);
-        }
-        .content {
-            padding: 15px;
-            min-height: 500px;
-        }
-        .content-section {
-            display: none;
-            animation: sectionFade 0.4s ease;
-        }
+        .loader { display: none; border: 3px solid #f3f3f3; border-top: 3px solid #005aa7; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tabs { display: flex; background: #e6f0fa; border-bottom: 2px solid #005aa7; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
+        .tab { flex: 1; min-width: 80px; text-align: center; padding: 15px 10px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; position: relative; }
+        .tab.active { border-bottom: 3px solid #005aa7; color: #005aa7; font-weight: bold; background-color: white; }
+        .tab:hover { background-color: #f0f8ff; transform: translateY(-2px); }
+        .content { padding: 15px; min-height: 500px; }
+        .content-section { display: none; animation: sectionFade 0.4s ease; }
         .content-section.active { display: block; }
-        @keyframes sectionFade {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes sectionFade { from { opacity: 0; } to { opacity: 1; } }
         .timetable-container { margin-top: 15px; }
-        .edit-btn, .save-btn, .add-time-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 10px;
-            font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+        .edit-btn, .save-btn, .add-time-btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 10px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .edit-btn { background-color: #005aa7; color: white; }
         .edit-btn:hover { background-color: #004785; }
-        .save-btn {
-            background-color: #27ae60;
-            color: white;
-            margin-left: 8px;
-            display: none;
-        }
+        .save-btn { background-color: #27ae60; color: white; margin-left: 8px; display: none; }
         .save-btn:hover { background-color: #219653; }
-        .add-time-btn {
-            background-color: #f39c12;
-            color: white;
-            margin-left: 8px;
-        }
-        .timetable {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
-            overflow-x: auto;
-            display: block;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .timetable th, .timetable td {
-            border: 1px solid #dcdfe6;
-            padding: 8px 5px;
-            text-align: center;
-            min-width: 70px;
-        }
-        .timetable th {
-            background-color: #e6f0fa;
-            color: #005aa7;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-        }
-        .timetable td.editable {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .timetable td.editable:hover {
-            background-color: #e6f0fa;
-            transform: scale(1.02);
-            box-shadow: inset 0 0 0 1px #005aa7;
-        }
-        .time-slot {
-            font-weight: bold;
-            background-color: #f0f8ff !important;
-        }
-        .edit-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            animation: modalFade 0.3s ease;
-        }
-        @keyframes modalFade {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .edit-modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 500px;
-            border: 2px solid #005aa7;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            transform: scale(0.95);
-            animation: modalSlide 0.3s ease forwards;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        @keyframes modalSlide {
-            to { transform: scale(1); }
-        }
-        .edit-modal h3 {
-            color: #005aa7;
-            margin-bottom: 15px;
-            text-align: center;
-            border-bottom: 1px solid #e6f0fa;
-            padding-bottom: 10px;
-        }
+        .add-time-btn { background-color: #f39c12; color: white; margin-left: 8px; }
+        .timetable { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; overflow-x: auto; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .timetable th, .timetable td { border: 1px solid #dcdfe6; padding: 8px 5px; text-align: center; min-width: 70px; }
+        .timetable th { background-color: #e6f0fa; color: #005aa7; font-weight: bold; position: sticky; top: 0; }
+        .timetable td.editable { cursor: pointer; transition: all 0.2s; }
+        .timetable td.editable:hover { background-color: #e6f0fa; transform: scale(1.02); box-shadow: inset 0 0 0 1px #005aa7; }
+        .time-slot { font-weight: bold; background-color: #f0f8ff !important; }
+        .edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px; animation: modalFade 0.3s ease; }
+        @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+        .edit-modal-content { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 500px; border: 2px solid #005aa7; box-shadow: 0 5px 20px rgba(0,0,0,0.2); transform: scale(0.95); animation: modalSlide 0.3s ease forwards; max-height: 80vh; overflow-y: auto; }
+        @keyframes modalSlide { to { transform: scale(1); } }
+        .edit-modal h3 { color: #005aa7; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #e6f0fa; padding-bottom: 10px; }
         .form-group { margin-bottom: 12px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 4px;
-            color: #333;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
-        .modal-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        .form-group label { display: block; margin-bottom: 4px; color: #333; font-size: 14px; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .modal-buttons { display: flex; justify-content: space-between; margin-top: 15px; }
+        .modal-btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
         .confirm-btn { background-color: #005aa7; color: white; }
         .confirm-btn:hover { background-color: #004785; }
         .cancel-btn { background-color: #999; color: white; }
         .cancel-btn:hover { background-color: #777; }
-        .school-tools {
-            margin-top: 15px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 10px 0;
-        }
-        .tool-card {
-            background-color: #f8fbff;
-            border: 1px solid #005aa7;
-            border-radius: 8px;
-            padding: 20px;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .tool-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,90,167,0.15);
-        }
-        .tool-card h3 {
-            color: #005aa7;
-            margin-bottom: 15px;
-            text-align: center;
-            border-bottom: 2px solid #e6f0fa;
-            padding-bottom: 10px;
-            font-size: 16px;
-            position: relative;
-        }
-        .score-input {
-            width: 70px;
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .calculate-score-btn {
-            background-color: #005aa7;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 14px;
-            align-self: center;
-        }
-        .score-result {
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #e6f0fa;
-            border-radius: 4px;
-            color: #333;
-            font-size: 14px;
-            border-left: 3px solid #005aa7;
-        }
-        .countdown {
-            text-align: center;
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #f8fbff;
-            border-radius: 8px;
-        }
-        .countdown-input {
-            padding: 10px;
-            width: 100%;
-            max-width: 250px;
-            margin: 0 auto 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: block;
-        }
-        .countdown-btn {
-            padding: 10px 20px;
-            background-color: #005aa7;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .countdown-display {
-            font-size: 28px;
-            margin-top: 20px;
-            color: #005aa7;
-            font-weight: bold;
-            padding: 15px;
-            background-color: #e6f0fa;
-            border-radius: 8px;
-            border-left: 4px solid #005aa7;
-        }
-        .memo-input {
-            width: 100%;
-            min-height: 120px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            resize: vertical;
-            margin-bottom: 10px;
-        }
-        .memo-date {
-            padding: 8px;
-            margin: 0 auto 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: block;
-        }
-        .memo-list {
-            margin-top: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            text-align: left;
-            font-size: 14px;
-        }
-        .memo-item {
-            padding: 10px;
-            background-color: #e6f0fa;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            position: relative;
-            border-left: 3px solid #005aa7;
-        }
-        .memo-item .date {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-        .memo-item .delete-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 3px 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .phone-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            flex-wrap: wrap;
-        }
-        .phone-label {
-            flex: 1;
-            min-width: 80px;
-            font-weight: bold;
-        }
-        .phone-input {
-            flex: 2;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            margin-right: 8px;
-            min-width: 150px;
-        }
-        .save-phone-btn {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .decibel-display {
-            font-size: 36px;
-            font-weight: bold;
-            color: #005aa7;
-            margin: 15px 0;
-            height: 45px;
-        }
-        .decibel-warning {
-            color: #e74c3c;
-            font-weight: bold;
-            display: none;
-            margin: 8px 0;
-            animation: flash 1s infinite;
-        }
-        @keyframes flash {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.05); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        .threshold-control {
-            margin: 12px 0;
-        }
-        .threshold-input {
-            width: 80px;
-            padding: 6px;
-            text-align: center;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-right: 8px;
-        }
-        .decibel-btn {
-            margin: 4px;
-            padding: 8px 18px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        .school-tools { margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 10px 0; }
+        .tool-card { background-color: #f8fbff; border: 1px solid #005aa7; border-radius: 8px; padding: 20px; transition: all 0.3s; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .tool-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,90,167,0.15); }
+        .tool-card h3 { color: #005aa7; margin-bottom: 15px; text-align: center; border-bottom: 2px solid #e6f0fa; padding-bottom: 10px; font-size: 16px; position: relative; }
+        .score-input { width: 70px; padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        .calculate-score-btn { background-color: #005aa7; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 14px; align-self: center; }
+        .score-result { margin-top: 15px; padding: 15px; background-color: #e6f0fa; border-radius: 4px; color: #333; font-size: 14px; border-left: 3px solid #005aa7; }
+        .countdown { text-align: center; margin-top: 20px; padding: 20px; background-color: #f8fbff; border-radius: 8px; }
+        .countdown-input { padding: 10px; width: 100%; max-width: 250px; margin: 0 auto 15px; border: 1px solid #ddd; border-radius: 4px; display: block; }
+        .countdown-btn { padding: 10px 20px; background-color: #005aa7; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        .countdown-display { font-size: 28px; margin-top: 20px; color: #005aa7; font-weight: bold; padding: 15px; background-color: #e6f0fa; border-radius: 8px; border-left: 4px solid #005aa7; }
+        .memo-input { width: 100%; min-height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; margin-bottom: 10px; }
+        .memo-date { padding: 8px; margin: 0 auto 10px; border: 1px solid #ddd; border-radius: 4px; display: block; }
+        .memo-list { margin-top: 15px; max-height: 200px; overflow-y: auto; text-align: left; font-size: 14px; }
+        .memo-item { padding: 10px; background-color: #e6f0fa; border-radius: 4px; margin-bottom: 8px; position: relative; border-left: 3px solid #005aa7; }
+        .memo-item .date { font-size: 12px; color: #666; margin-bottom: 4px; }
+        .memo-item .delete-btn { position: absolute; top: 8px; right: 8px; background-color: #e74c3c; color: white; border: none; border-radius: 3px; padding: 3px 6px; font-size: 12px; cursor: pointer; }
+        .phone-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+        .phone-label { flex: 1; min-width: 80px; font-weight: bold; }
+        .phone-input { flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-right: 8px; min-width: 150px; }
+        .save-phone-btn { background-color: #27ae60; color: white; border: none; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        .decibel-display { font-size: 36px; font-weight: bold; color: #005aa7; margin: 15px 0; height: 45px; }
+        .decibel-warning { color: #e74c3c; font-weight: bold; display: none; margin: 8px 0; animation: flash 1s infinite; }
+        @keyframes flash { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+        .threshold-control { margin: 12px 0; }
+        .threshold-input { width: 80px; padding: 6px; text-align: center; border: 1px solid #ddd; border-radius: 4px; margin-right: 8px; }
+        .decibel-btn { margin: 4px; padding: 8px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
         .start-btn { background-color: #27ae60; color: white; }
         .stop-btn { background-color: #e74c3c; color: white; }
-        .status-text {
-            margin-top: 12px;
-            font-style: italic;
-            color: #666;
-            font-size: 14px;
-        }
-        .knowledge-select, .knowledge-chapter {
-            width: 90%;
-            max-width: 400px;
-            padding: 10px;
-            margin: 10px auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            display: block;
-        }
-        .knowledge-content {
-            margin: 20px auto;
-            padding: 15px;
-            background-color: #e6f0fa;
-            border-radius: 8px;
-            text-align: left;
-            max-height: 300px;
-            overflow-y: auto;
-            font-size: 14px;
-            line-height: 1.8;
-            width: 90%;
-            max-width: 800px;
-            border-left: 4px solid #005aa7;
-        }
-        .back-to-top {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #005aa7;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            font-size: 18px;
-        }
-        .back-to-top:hover {
-            background-color: #004785;
-            transform: scale(1.1);
-        }
-        .reminder-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 90, 167, 0.9);
-            backdrop-filter: blur(5px);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-        .reminder-content {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 30px 40px;
-            border: 2px solid white;
-            max-width: 600px;
-            width: 90%;
-        }
-        .reminder-content h2 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-        }
-        .reminder-content p {
-            font-size: 1.8rem;
-            margin: 10px 0;
-        }
-        .reminder-content .next-course {
-            font-size: 3rem;
-            font-weight: bold;
-            background: rgba(255,255,255,0.3);
-            display: inline-block;
-            padding: 10px 30px;
-            border-radius: 60px;
-            margin-top: 15px;
-        }
-        .reminder-close-btn {
-            margin-top: 20px;
-            background-color: white;
-            color: #005aa7;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .reminder-close-btn:hover {
-            transform: scale(1.05);
-            background-color: #f0f0f0;
-        }
+        .status-text { margin-top: 12px; font-style: italic; color: #666; font-size: 14px; }
+        .knowledge-select, .knowledge-chapter { width: 90%; max-width: 400px; padding: 10px; margin: 10px auto; border: 1px solid #ddd; border-radius: 4px; display: block; }
+        .knowledge-content { margin: 20px auto; padding: 15px; background-color: #e6f0fa; border-radius: 8px; text-align: left; max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.8; width: 90%; max-width: 800px; border-left: 4px solid #005aa7; }
+        .back-to-top { position: fixed; bottom: 20px; right: 20px; background-color: #005aa7; color: white; width: 40px; height: 40px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; font-size: 18px; }
+        .back-to-top:hover { background-color: #004785; transform: scale(1.1); }
+        .reminder-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 90, 167, 0.9); backdrop-filter: blur(5px); z-index: 10000; display: none; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; }
+        .reminder-content { background: rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 30px 40px; border: 2px solid white; max-width: 600px; width: 90%; }
+        .reminder-content h2 { font-size: 2.5rem; margin-bottom: 15px; }
+        .reminder-content p { font-size: 1.8rem; margin: 10px 0; }
+        .reminder-content .next-course { font-size: 3rem; font-weight: bold; background: rgba(255,255,255,0.3); display: inline-block; padding: 10px 30px; border-radius: 60px; margin-top: 15px; }
+        .reminder-close-btn { margin-top: 20px; background-color: white; color: #005aa7; border: none; padding: 10px 25px; border-radius: 40px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .reminder-close-btn:hover { transform: scale(1.05); background-color: #f0f0f0; }
         @media (max-width: 600px) {
             .reminder-content h2 { font-size: 1.8rem; }
             .reminder-content p { font-size: 1.3rem; }
             .reminder-content .next-course { font-size: 2rem; }
         }
-        /* 成绩管理专用样式 */
-        .score-record-item {
-            background-color: #f8f9fa;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border-left: 3px solid #005aa7;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .score-record-info {
-            flex: 1;
-            font-size: 13px;
-        }
-        .delete-record-btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .target-area {
-            background: #e6f0fa;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 15px 0;
-            text-align: center;
-        }
-        .target-input {
-            width: 100px;
-            padding: 5px;
-            margin: 5px;
-        }
-        .chart-container {
-            margin: 20px 0;
-            height: 200px;
-        }
-        .record-form input, .record-form button {
-            margin: 5px 0;
-            width: 100%;
-        }
-        .subject-scores {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 10px 0;
-        }
-        .subject-scores input {
-            width: 60px;
-            padding: 5px;
-        }
-        /* 错题本样式 */
-        .mistake-filter {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .mistake-filter select, .mistake-filter button {
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        .mistake-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .mistake-item {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 10px;
-            position: relative;
-            transition: 0.2s;
-        }
-        .mistake-item:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .mistake-subject {
-            display: inline-block;
-            background: #005aa7;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-right: 10px;
-        }
-        .mistake-question {
-            font-weight: bold;
-            margin: 8px 0;
-            line-height: 1.4;
-        }
-        .mistake-actions {
-            text-align: right;
-            margin-top: 8px;
-        }
-        .mistake-actions button {
-            background: none;
-            border: none;
-            color: #005aa7;
-            cursor: pointer;
-            margin-left: 10px;
-            font-size: 12px;
-        }
-        .mistake-actions button.delete {
-            color: #e74c3c;
-        }
-        .random-review {
-            background: #e6f0fa;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            text-align: center;
-        }
-        .review-question {
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        .review-answer {
-            background: #f0f0f0;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            display: none;
-        }
-        .review-answer.show {
-            display: block;
-        }
-        /* 校园地图导航样式 */
-        .map-container {
-            position: relative;
-            margin-top: 10px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .map-marker {
-            transition: transform 0.2s ease, background-color 0.2s ease;
-            z-index: 10;
-        }
-        .map-marker:hover {
-            transform: translate(-50%, -50%) scale(1.2);
-            background-color: #e64a19 !important;
-        }
-        .map-info {
-            margin-top: 12px;
-            padding: 10px;
-            background: #e6f0fa;
-            border-radius: 8px;
-            font-size: 14px;
-            border-left: 3px solid #005aa7;
-        }
+        .score-record-item { background-color: #f8f9fa; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #005aa7; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .score-record-info { flex: 1; font-size: 13px; }
+        .delete-record-btn { background-color: #e74c3c; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+        .target-area { background: #e6f0fa; padding: 12px; border-radius: 6px; margin: 15px 0; text-align: center; }
+        .target-input { width: 100px; padding: 5px; margin: 5px; }
+        .chart-container { margin: 20px 0; height: 200px; }
+        .record-form input, .record-form button { margin: 5px 0; width: 100%; }
+        .subject-scores { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+        .subject-scores input { width: 60px; padding: 5px; }
+        .mistake-filter { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .mistake-filter select, .mistake-filter button { padding: 6px 12px; border-radius: 4px; border: 1px solid #ddd; }
+        .mistake-list { max-height: 400px; overflow-y: auto; }
+        .mistake-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; margin-bottom: 10px; position: relative; transition: 0.2s; }
+        .mistake-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .mistake-subject { display: inline-block; background: #005aa7; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 10px; }
+        .mistake-question { font-weight: bold; margin: 8px 0; line-height: 1.4; }
+        .mistake-actions { text-align: right; margin-top: 8px; }
+        .mistake-actions button { background: none; border: none; color: #005aa7; cursor: pointer; margin-left: 10px; font-size: 12px; }
+        .mistake-actions button.delete { color: #e74c3c; }
+        .random-review { background: #e6f0fa; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: center; }
+        .review-question { font-weight: bold; margin: 10px 0; }
+        .review-answer { background: #f0f0f0; padding: 10px; border-radius: 6px; margin-top: 10px; display: none; }
+        .review-answer.show { display: block; }
+        .volume-bar-container { width: 100%; height: 8px; background: #ddd; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+        .volume-bar { width: 0%; height: 100%; background: #005aa7; transition: width 0.05s linear; }
     </style>
 </head>
 <body>
@@ -858,40 +196,37 @@
                     <button class="save-btn" id="saveTimetableBtn">保存修改</button>
                     <button class="add-time-btn" id="addTimeBtn">添加时间段</button>
                     <table class="timetable" id="editableTimetable">
-                        <thead>
-                            <tr><th>节次/时间</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th>  </thead>
+                        <thead><tr><th>节次/时间</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th><th>周六</th><th>周日</th></tr></thead>
                         <tbody>
-                            <tr id="timeRow1"><td class="time-slot">第一节<br>08:00-08:45</td>
+                            <tr><td class="time-slot">第一节<br>08:00-08:45</td>
                                 <td class="editable" data-row="1" data-col="1">语文</td><td class="editable" data-row="1" data-col="2">数学</td><td class="editable" data-row="1" data-col="3">英语</td>
                                 <td class="editable" data-row="1" data-col="4">物理</td><td class="editable" data-row="1" data-col="5">化学</td><td class="editable" data-row="1" data-col="6">自习</td><td class="editable" data-row="1" data-col="7">-</td>
                             </tr>
-                            <tr id="timeRow2"><td class="time-slot">第二节<br>08:55-09:40</td>
+                            <tr><td class="time-slot">第二节<br>08:55-09:40</td>
                                 <td class="editable" data-row="2" data-col="1">数学</td><td class="editable" data-row="2" data-col="2">语文</td><td class="editable" data-row="2" data-col="3">物理</td>
                                 <td class="editable" data-row="2" data-col="4">英语</td><td class="editable" data-row="2" data-col="5">生物</td><td class="editable" data-row="2" data-col="6">数学</td><td class="editable" data-row="2" data-col="7">-</td>
                             </tr>
-                            <tr id="timeRow3"><td class="time-slot">第三节<br>10:00-10:45</td>
+                            <tr><td class="time-slot">第三节<br>10:00-10:45</td>
                                 <td class="editable" data-row="3" data-col="1">英语</td><td class="editable" data-row="3" data-col="2">物理</td><td class="editable" data-row="3" data-col="3">数学</td>
                                 <td class="editable" data-row="3" data-col="4">语文</td><td class="editable" data-row="3" data-col="5">历史</td><td class="editable" data-row="3" data-col="6">英语</td><td class="editable" data-row="3" data-col="7">-</td>
                             </tr>
-                            <tr id="timeRow4"><td class="time-slot">第四节<br>10:55-11:40</td>
+                            <tr><td class="time-slot">第四节<br>10:55-11:40</td>
                                 <td class="editable" data-row="4" data-col="1">物理</td><td class="editable" data-row="4" data-col="2">英语</td><td class="editable" data-row="4" data-col="3">语文</td>
                                 <td class="editable" data-row="4" data-col="4">数学</td><td class="editable" data-row="4" data-col="5">政治</td><td class="editable" data-row="4" data-col="6">语文</td><td class="editable" data-row="4" data-col="7">-</td>
                             </tr>
-                            <tr id="timeRow5"><td class="time-slot">午休<br>12:00-14:00</td>
-                                <td colspan="7" style="background-color: #f0f8ff; color: #666;">午休时间</td>
-                            </tr>
-                            <tr id="timeRow6"><td class="time-slot">第五节<br>14:00-14:45</td>
+                            <tr><td class="time-slot">午休<br>12:00-14:00</td><td colspan="7" style="background-color: #f0f8ff; color: #666;">午休时间</td></tr>
+                            <tr><td class="time-slot">第五节<br>14:00-14:45</td>
                                 <td class="editable" data-row="6" data-col="1">化学</td><td class="editable" data-row="6" data-col="2">生物</td><td class="editable" data-row="6" data-col="3">政治</td>
                                 <td class="editable" data-row="6" data-col="4">历史</td><td class="editable" data-row="6" data-col="5">地理</td><td class="editable" data-row="6" data-col="6">物理</td><td class="editable" data-row="6" data-col="7">-</td>
                             </tr>
-                            <tr id="timeRow7"><td class="time-slot">第六节<br>14:55-15:40</td>
+                            <tr><td class="time-slot">第六节<br>14:55-15:40</td>
                                 <td class="editable" data-row="7" data-col="1">生物</td><td class="editable" data-row="7" data-col="2">化学</td><td class="editable" data-row="7" data-col="3">历史</td>
                                 <td class="editable" data-row="7" data-col="4">地理</td><td class="editable" data-row="7" data-col="5">体育</td><td class="editable" data-row="7" data-col="6">化学</td><td class="editable" data-row="7" data-col="7">-</td>
-                             </tr>
-                            <tr id="timeRow8"><td class="time-slot">第七节<br>16:00-16:45</td>
+                            </tr>
+                            <tr><td class="time-slot">第七节<br>16:00-16:45</td>
                                 <td class="editable" data-row="8" data-col="1">历史</td><td class="editable" data-row="8" data-col="2">政治</td><td class="editable" data-row="8" data-col="3">地理</td>
                                 <td class="editable" data-row="8" data-col="4">体育</td><td class="editable" data-row="8" data-col="5">自习</td><td class="editable" data-row="8" data-col="6">生物</td><td class="editable" data-row="8" data-col="7">-</td>
-                             </tr>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -900,28 +235,23 @@
             <div class="content-section" id="tools-section">
                 <h2>校园实用工具</h2>
                 <div class="school-tools">
-                    <!-- 成绩平均分计算卡片 -->
                     <div class="tool-card">
                         <h3>成绩平均分计算</h3>
                         <div class="score-tool">
                             <p>输入各科成绩（最多8科）</p>
                             <input type="number" class="score-input" id="score1" placeholder="科目1" min="0" max="100">
                             <input type="number" class="score-input" id="score2" placeholder="科目2" min="0" max="100">
-                            <input type="number" class="score-input" id="score3" placeholder="科目3" min="0" max="100">
-                            <br>
+                            <input type="number" class="score-input" id="score3" placeholder="科目3" min="0" max="100"><br>
                             <input type="number" class="score-input" id="score4" placeholder="科目4" min="0" max="100">
                             <input type="number" class="score-input" id="score5" placeholder="科目5" min="0" max="100">
-                            <input type="number" class="score-input" id="score6" placeholder="科目6" min="0" max="100">
-                            <br>
+                            <input type="number" class="score-input" id="score6" placeholder="科目6" min="0" max="100"><br>
                             <input type="number" class="score-input" id="score7" placeholder="科目7" min="0" max="100">
-                            <input type="number" class="score-input" id="score8" placeholder="科目8" min="0" max="100">
-                            <br>
+                            <input type="number" class="score-input" id="score8" placeholder="科目8" min="0" max="100"><br>
                             <button class="calculate-score-btn" onclick="calculateAverageScore()">计算平均分</button>
                             <div class="score-result" id="scoreResult">计算结果将显示在这里</div>
                         </div>
                     </div>
 
-                    <!-- 成绩管理与趋势卡片 -->
                     <div class="tool-card">
                         <h3>📊 成绩管理与趋势</h3>
                         <div style="margin-bottom: 15px;">
@@ -947,7 +277,6 @@
                         </div>
                     </div>
 
-                    <!-- 作息时间查询卡片 -->
                     <div class="tool-card">
                         <h3>作息时间查询</h3>
                         <div class="schedule-tool">
@@ -963,7 +292,6 @@
                         </div>
                     </div>
 
-                    <!-- 校园常用电话卡片 -->
                     <div class="tool-card">
                         <h3>校园常用电话</h3>
                         <div class="phone-tool" id="phoneTool">
@@ -976,7 +304,6 @@
                         </div>
                     </div>
 
-                    <!-- 班级值日表卡片 -->
                     <div class="tool-card">
                         <h3>班级值日表</h3>
                         <div style="padding: 10px; flex: 1;">
@@ -988,7 +315,6 @@
                         </div>
                     </div>
 
-                    <!-- 校园备忘录卡片 -->
                     <div class="tool-card">
                         <h3>校园备忘录</h3>
                         <div class="memo-tool">
@@ -1001,7 +327,6 @@
                         </div>
                     </div>
 
-                    <!-- 分贝检测卡片 -->
                     <div class="tool-card">
                         <h3>分贝检测提醒</h3>
                         <div class="decibel-tool">
@@ -1015,13 +340,10 @@
                             <div class="decibel-display" id="decibelValue">0</div>
                             <div class="decibel-warning" id="decibelWarning">⚠️ 声音过大！请保持安静！⚠️</div>
                             <div class="status-text" id="decibelStatus">未开始检测</div>
-                            <div style="margin-top: 20px; height: 80px; background: #e6f0fa; border-radius: 5px; overflow: hidden;">
-                                <div id="audioVisualizer" style="display: flex; align-items: flex-end; justify-content: center; height: 100%; padding: 10px;"></div>
-                            </div>
+                            <div class="volume-bar-container"><div class="volume-bar" id="volumeBar"></div></div>
                         </div>
                     </div>
 
-                    <!-- 随机学号点名器卡片 -->
                     <div class="tool-card">
                         <h3>🎲 随机学号点名器</h3>
                         <div style="text-align: center; flex: 1;">
@@ -1033,22 +355,15 @@
                         </div>
                     </div>
 
-                    <!-- 错题本卡片 -->
                     <div class="tool-card">
                         <h3>📚 错题本</h3>
                         <div>
                             <div class="mistake-filter">
                                 <select id="mistakeSubjectFilter">
                                     <option value="all">全部学科</option>
-                                    <option value="语文">语文</option>
-                                    <option value="数学">数学</option>
-                                    <option value="英语">英语</option>
-                                    <option value="物理">物理</option>
-                                    <option value="化学">化学</option>
-                                    <option value="生物">生物</option>
-                                    <option value="历史">历史</option>
-                                    <option value="政治">政治</option>
-                                    <option value="地理">地理</option>
+                                    <option value="语文">语文</option><option value="数学">数学</option><option value="英语">英语</option>
+                                    <option value="物理">物理</option><option value="化学">化学</option><option value="生物">生物</option>
+                                    <option value="历史">历史</option><option value="政治">政治</option><option value="地理">地理</option>
                                 </select>
                                 <button class="calculate-score-btn" onclick="filterMistakes()">筛选</button>
                                 <button class="calculate-score-btn" onclick="showAddMistakeModal()">+ 添加错题</button>
@@ -1062,24 +377,6 @@
                                     <button class="calculate-score-btn" id="showAnswerBtn" style="display:none; margin-top: 8px;" onclick="showAnswer()">显示答案</button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- 校园地图导航卡片 -->
-                    <div class="tool-card">
-                        <h3>🗺️ 校园地图导航</h3>
-                        <div class="map-container" style="position: relative; margin-top: 10px;">
-                            <!-- 校园平面图，请替换为实际图片路径 -->
-                            <img id="campusMapImg" src="https://picsum.photos/id/104/800/500" alt="校园平面图示例，请替换为实际图片" style="width: 100%; height: auto; border-radius: 6px; display: block;">
-                            <div id="mapMarkers" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-                                <!-- 动态生成的标注点将在这里 -->
-                            </div>
-                        </div>
-                        <div id="mapInfo" class="map-info">
-                            点击标注点查看详情
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <button class="calculate-score-btn" onclick="resetMapInfo()">清空信息</button>
                         </div>
                     </div>
                 </div>
@@ -1112,7 +409,7 @@
                 <div class="countdown">
                     <input type="text" class="countdown-input" id="countdown-title" placeholder="输入事件名称（如期末考试）">
                     <input type="date" class="countdown-input" id="countdown-date">
-                    <button class="countdown-btn" id="startCountdownBtn">开始倒计时</button>
+                    <button class="countdown-btn" onclick="startCountdown()">开始倒计时</button>
                     <div class="countdown-display" id="countdown-result">请设置倒计时事件</div>
                 </div>
             </div>
@@ -1121,81 +418,19 @@
 
     <div class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</div>
 
-    <!-- 编辑标题模态框 -->
-    <div class="edit-modal" id="titleEditModal">
-        <div class="edit-modal-content">
-            <h3>编辑页面标题</h3>
-            <div class="form-group"><label for="newMainTitle">主标题</label><input type="text" id="newMainTitle"></div>
-            <div class="form-group"><label for="newSubTitle">副标题</label><input type="text" id="newSubTitle"></div>
-            <div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="saveTitleEdit()">确认修改</button></div>
-        </div>
-    </div>
-
-    <!-- 添加时间段模态框 -->
-    <div class="edit-modal" id="addTimeModal">
-        <div class="edit-modal-content">
-            <h3>添加新的时间段</h3>
-            <div class="form-group"><label for="timeSlotName">时间段名称</label><input type="text" id="timeSlotName" placeholder="如：晚自习、第八节"></div>
-            <div class="form-group"><label for="timeSlotRange">时间范围（如 19:00-21:00）</label><input type="text" id="timeSlotRange" placeholder="19:00-21:00"></div>
-            <div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="addNewTimeSlot()">确认添加</button></div>
-        </div>
-    </div>
-
-    <!-- 课程编辑模态框 -->
-    <div class="edit-modal" id="courseEditModal">
-        <div class="edit-modal-content">
-            <h3>编辑课程信息</h3>
-            <input type="hidden" id="editRow"><input type="hidden" id="editCol">
-            <div class="form-group"><label for="courseName">课程名称</label><input type="text" id="courseName"></div>
-            <div class="form-group"><label for="teacherName">任课老师（选填）</label><input type="text" id="teacherName"></div>
-            <div class="form-group"><label for="classroom">教室（选填）</label><input type="text" id="classroom"></div>
-            <div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="saveCourseEdit()">确认修改</button></div>
-        </div>
-    </div>
-
-    <!-- 错题本添加/编辑模态框 -->
-    <div class="edit-modal" id="mistakeModal">
-        <div class="edit-modal-content">
-            <h3 id="mistakeModalTitle">添加错题</h3>
-            <input type="hidden" id="editMistakeId">
-            <div class="form-group">
-                <label>学科</label>
-                <select id="mistakeSubject">
-                    <option value="语文">语文</option>
-                    <option value="数学">数学</option>
-                    <option value="英语">英语</option>
-                    <option value="物理">物理</option>
-                    <option value="化学">化学</option>
-                    <option value="生物">生物</option>
-                    <option value="历史">历史</option>
-                    <option value="政治">政治</option>
-                    <option value="地理">地理</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>题目内容</label>
-                <textarea id="mistakeQuestion" rows="3" placeholder="请描述题目..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>错误原因</label>
-                <textarea id="mistakeReason" rows="2" placeholder="分析错误原因..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>正确答案/解析</label>
-                <textarea id="mistakeAnswer" rows="3" placeholder="正确答案或解题思路..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>章节（选填）</label>
-                <input type="text" id="mistakeChapter" placeholder="如：三角函数、牛顿定律">
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button>
-                <button class="modal-btn confirm-btn" onclick="saveMistake()">保存</button>
-            </div>
-        </div>
-    </div>
+    <!-- 模态框 -->
+    <div class="edit-modal" id="titleEditModal"><div class="edit-modal-content"><h3>编辑页面标题</h3><div class="form-group"><label for="newMainTitle">主标题</label><input type="text" id="newMainTitle"></div><div class="form-group"><label for="newSubTitle">副标题</label><input type="text" id="newSubTitle"></div><div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="saveTitleEdit()">确认修改</button></div></div></div>
+    <div class="edit-modal" id="addTimeModal"><div class="edit-modal-content"><h3>添加新的时间段</h3><div class="form-group"><label for="timeSlotName">时间段名称</label><input type="text" id="timeSlotName" placeholder="如：晚自习、第八节"></div><div class="form-group"><label for="timeSlotRange">时间范围（如 19:00-21:00）</label><input type="text" id="timeSlotRange" placeholder="19:00-21:00"></div><div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="addNewTimeSlot()">确认添加</button></div></div></div>
+    <div class="edit-modal" id="courseEditModal"><div class="edit-modal-content"><h3>编辑课程信息</h3><input type="hidden" id="editRow"><input type="hidden" id="editCol"><div class="form-group"><label for="courseName">课程名称</label><input type="text" id="courseName"></div><div class="form-group"><label for="teacherName">任课老师（选填）</label><input type="text" id="teacherName"></div><div class="form-group"><label for="classroom">教室（选填）</label><input type="text" id="classroom"></div><div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="saveCourseEdit()">确认修改</button></div></div></div>
+    <div class="edit-modal" id="mistakeModal"><div class="edit-modal-content"><h3 id="mistakeModalTitle">添加错题</h3><input type="hidden" id="editMistakeId"><div class="form-group"><label>学科</label><select id="mistakeSubject"><option value="语文">语文</option><option value="数学">数学</option><option value="英语">英语</option><option value="物理">物理</option><option value="化学">化学</option><option value="生物">生物</option><option value="历史">历史</option><option value="政治">政治</option><option value="地理">地理</option></select></div><div class="form-group"><label>题目内容</label><textarea id="mistakeQuestion" rows="3" placeholder="请描述题目..."></textarea></div><div class="form-group"><label>错误原因</label><textarea id="mistakeReason" rows="2" placeholder="分析错误原因..."></textarea></div><div class="form-group"><label>正确答案/解析</label><textarea id="mistakeAnswer" rows="3" placeholder="正确答案或解题思路..."></textarea></div><div class="form-group"><label>章节（选填）</label><input type="text" id="mistakeChapter" placeholder="如：三角函数、牛顿定律"></div><div class="modal-buttons"><button class="modal-btn cancel-btn" onclick="closeEditModal()">取消</button><button class="modal-btn confirm-btn" onclick="saveMistake()">保存</button></div></div></div>
 
     <script>
+        // ---------- 全局变量 ----------
+        let isEditing = false;
+        let countdownInterval = null;
+        let lastRemindedKey = null;
+        let isDetecting = false, mediaStream = null, audioContext = null, analyser = null, detectionInterval = null;
+
         // ---------- 辅助函数 ----------
         function escapeHtml(str) {
             if (!str) return '';
@@ -1209,18 +444,11 @@
 
         // ---------- 错题本模块 ----------
         let currentMistakeFilter = "all";
-        let currentReviewMistake = null; // 当前随机抽到的错题对象
+        let currentReviewMistake = null;
 
-        // 获取所有错题
-        function getMistakes() {
-            let mistakes = localStorage.getItem("gyez_mistakes");
-            return mistakes ? JSON.parse(mistakes) : [];
-        }
-        function saveMistakes(mistakes) {
-            localStorage.setItem("gyez_mistakes", JSON.stringify(mistakes));
-        }
+        function getMistakes() { return JSON.parse(localStorage.getItem("gyez_mistakes") || "[]"); }
+        function saveMistakes(mistakes) { localStorage.setItem("gyez_mistakes", JSON.stringify(mistakes)); }
 
-        // 添加/编辑错题
         function saveMistake() {
             const id = document.getElementById("editMistakeId").value;
             const subject = document.getElementById("mistakeSubject").value;
@@ -1228,38 +456,19 @@
             const reason = document.getElementById("mistakeReason").value.trim();
             const answer = document.getElementById("mistakeAnswer").value.trim();
             const chapter = document.getElementById("mistakeChapter").value.trim();
-
-            if (!subject || !question || !reason || !answer) {
-                alert("请填写学科、题目、错误原因和正确答案！");
-                return;
-            }
-
+            if (!subject || !question || !reason || !answer) { alert("请填写完整信息！"); return; }
             let mistakes = getMistakes();
             if (id) {
-                // 编辑模式
                 const index = mistakes.findIndex(m => m.id == id);
-                if (index !== -1) {
-                    mistakes[index] = {
-                        ...mistakes[index],
-                        subject, question, reason, answer, chapter,
-                        updateTime: new Date().toISOString()
-                    };
-                }
+                if (index !== -1) mistakes[index] = { ...mistakes[index], subject, question, reason, answer, chapter, updateTime: new Date().toISOString() };
             } else {
-                // 新增
-                mistakes.push({
-                    id: Date.now(),
-                    subject, question, reason, answer, chapter,
-                    createTime: new Date().toISOString(),
-                    updateTime: new Date().toISOString()
-                });
+                mistakes.push({ id: Date.now(), subject, question, reason, answer, chapter, createTime: new Date().toISOString(), updateTime: new Date().toISOString() });
             }
             saveMistakes(mistakes);
             closeEditModal();
             renderMistakeList();
         }
 
-        // 删除错题
         function deleteMistake(id) {
             if (confirm("确定删除这道错题吗？")) {
                 let mistakes = getMistakes();
@@ -1267,7 +476,6 @@
                 saveMistakes(mistakes);
                 renderMistakeList();
                 if (currentReviewMistake && currentReviewMistake.id === id) {
-                    // 如果正在复习的被删除了，清空复习区域
                     document.getElementById("reviewContent").querySelector(".review-question").innerHTML = "";
                     document.getElementById("reviewContent").querySelector(".review-answer").innerHTML = "";
                     document.getElementById("showAnswerBtn").style.display = "none";
@@ -1276,7 +484,6 @@
             }
         }
 
-        // 显示添加错题模态框
         function showAddMistakeModal() {
             document.getElementById("mistakeModalTitle").innerText = "添加错题";
             document.getElementById("editMistakeId").value = "";
@@ -1288,10 +495,8 @@
             document.getElementById("mistakeModal").style.display = "flex";
         }
 
-        // 编辑错题
         function editMistake(id) {
-            let mistakes = getMistakes();
-            let mistake = mistakes.find(m => m.id === id);
+            let mistake = getMistakes().find(m => m.id === id);
             if (!mistake) return;
             document.getElementById("mistakeModalTitle").innerText = "编辑错题";
             document.getElementById("editMistakeId").value = mistake.id;
@@ -1303,59 +508,42 @@
             document.getElementById("mistakeModal").style.display = "flex";
         }
 
-        // 查看错题详情（弹窗）
         function viewMistakeDetail(id) {
-            let mistakes = getMistakes();
-            let mistake = mistakes.find(m => m.id === id);
+            let mistake = getMistakes().find(m => m.id === id);
             if (!mistake) return;
             alert(`题目：${mistake.question}\n\n错误原因：${mistake.reason}\n\n正确答案：${mistake.answer}\n\n章节：${mistake.chapter || "无"}`);
         }
 
-        // 渲染错题列表
         function renderMistakeList() {
             let mistakes = getMistakes();
-            if (currentMistakeFilter !== "all") {
-                mistakes = mistakes.filter(m => m.subject === currentMistakeFilter);
-            }
-            // 按创建时间倒序
+            if (currentMistakeFilter !== "all") mistakes = mistakes.filter(m => m.subject === currentMistakeFilter);
             mistakes.sort((a,b) => new Date(b.createTime) - new Date(a.createTime));
-
             const container = document.getElementById("mistakeList");
             if (!container) return;
-            if (mistakes.length === 0) {
-                container.innerHTML = "<div style='text-align:center; color:#666; padding:20px;'>暂无错题，点击上方按钮添加</div>";
-                return;
-            }
+            if (mistakes.length === 0) { container.innerHTML = "<div style='text-align:center; color:#666; padding:20px;'>暂无错题，点击上方按钮添加</div>"; return; }
             container.innerHTML = "";
             mistakes.forEach(m => {
                 const div = document.createElement("div");
                 div.className = "mistake-item";
-                div.innerHTML = `
-                    <span class="mistake-subject">${escapeHtml(m.subject)}</span>
-                    <div class="mistake-question">${escapeHtml(m.question.length > 50 ? m.question.substring(0,50)+"..." : m.question)}</div>
-                    <div class="mistake-actions">
-                        <button onclick="viewMistakeDetail(${m.id})">查看详情</button>
-                        <button onclick="editMistake(${m.id})">编辑</button>
-                        <button class="delete" onclick="deleteMistake(${m.id})">删除</button>
-                    </div>
-                `;
+                div.innerHTML = `<span class="mistake-subject">${escapeHtml(m.subject)}</span>
+                                 <div class="mistake-question">${escapeHtml(m.question.length > 50 ? m.question.substring(0,50)+"..." : m.question)}</div>
+                                 <div class="mistake-actions">
+                                    <button onclick="viewMistakeDetail(${m.id})">查看详情</button>
+                                    <button onclick="editMistake(${m.id})">编辑</button>
+                                    <button class="delete" onclick="deleteMistake(${m.id})">删除</button>
+                                 </div>`;
                 container.appendChild(div);
             });
         }
 
-        // 筛选错题
         function filterMistakes() {
             currentMistakeFilter = document.getElementById("mistakeSubjectFilter").value;
             renderMistakeList();
         }
 
-        // 随机抽题复习
         function randomReview() {
             let mistakes = getMistakes();
-            if (mistakes.length === 0) {
-                alert("还没有错题，请先添加错题！");
-                return;
-            }
+            if (mistakes.length === 0) { alert("还没有错题，请先添加错题！"); return; }
             const randomIndex = Math.floor(Math.random() * mistakes.length);
             currentReviewMistake = mistakes[randomIndex];
             const reviewDiv = document.getElementById("reviewContent");
@@ -1365,14 +553,12 @@
             document.getElementById("showAnswerBtn").style.display = "inline-block";
         }
 
-        function showAnswer() {
-            const answerDiv = document.getElementById("reviewContent").querySelector(".review-answer");
-            answerDiv.classList.add("show");
-        }
+        function showAnswer() { document.getElementById("reviewContent").querySelector(".review-answer").classList.add("show"); }
 
-        // ---------- 原有成绩管理模块 ----------
+        // ---------- 成绩管理模块 ----------
         let scoreChart = null;
         const subjectNames = ["语文", "数学", "英语", "物理", "化学", "生物", "历史", "政治"];
+
         function initSubjectInputs() {
             const container = document.getElementById("subjectScoresContainer");
             if (!container) return;
@@ -1381,19 +567,14 @@
                 let div = document.createElement("div");
                 div.style.display = "inline-block";
                 div.style.margin = "0 5px 5px 0";
-                div.innerHTML = `<label style="font-size:12px;">${sub}</label>
-                                 <input type="number" class="score-input" id="sub_${idx}" placeholder="0-100" min="0" max="100" step="1" style="width:60px;">`;
+                div.innerHTML = `<label style="font-size:12px;">${sub}</label><input type="number" class="score-input" id="sub_${idx}" placeholder="0-100" min="0" max="100" step="1" style="width:60px;">`;
                 container.appendChild(div);
             });
         }
-        function loadScoreRecords() {
-            let records = JSON.parse(localStorage.getItem("gyez_score_records") || "[]");
-            records.sort((a,b) => new Date(b.date) - new Date(a.date));
-            return records;
-        }
-        function saveScoreRecords(records) {
-            localStorage.setItem("gyez_score_records", JSON.stringify(records));
-        }
+
+        function loadScoreRecords() { return JSON.parse(localStorage.getItem("gyez_score_records") || "[]"); }
+        function saveScoreRecords(records) { localStorage.setItem("gyez_score_records", JSON.stringify(records)); }
+
         function addScoreRecord() {
             let examName = document.getElementById("examName").value.trim();
             let examDate = document.getElementById("examDate").value;
@@ -1408,14 +589,7 @@
             }
             let total = scores.reduce((a,b)=>a+b, 0);
             let average = (total / subjectNames.length).toFixed(1);
-            let record = {
-                id: Date.now(),
-                examName: escapeHtml(examName),
-                date: examDate,
-                scores: scores,
-                total: total,
-                average: average
-            };
+            let record = { id: Date.now(), examName: escapeHtml(examName), date: examDate, scores, total, average };
             let records = loadScoreRecords();
             records.unshift(record);
             saveScoreRecords(records);
@@ -1423,9 +597,10 @@
             updateScoreChart();
             document.getElementById("examName").value = "";
             document.getElementById("examDate").value = "";
-            for (let i=0; i<subjectNames.length; i++) { document.getElementById(`sub_${i}`).value = ""; }
+            for (let i=0; i<subjectNames.length; i++) document.getElementById(`sub_${i}`).value = "";
             alert("成绩记录已保存");
         }
+
         function deleteScoreRecord(id) {
             if (confirm("确定删除该成绩记录吗？")) {
                 let records = loadScoreRecords();
@@ -1435,6 +610,7 @@
                 updateScoreChart();
             }
         }
+
         function renderScoreRecords() {
             const container = document.getElementById("scoreRecordsList");
             if (!container) return;
@@ -1444,23 +620,18 @@
             records.forEach(rec => {
                 let div = document.createElement("div");
                 div.className = "score-record-item";
-                div.innerHTML = `
-                    <div class="score-record-info">
-                        <strong>${rec.examName}</strong> (${rec.date})<br>
-                        总分: ${rec.total}  |  平均分: ${rec.average}<br>
-                        <span style="font-size:12px;">${rec.scores.map((s,i)=>`${subjectNames[i]}:${s}`).join(" | ")}</span>
-                    </div>
-                    <button class="delete-record-btn" onclick="deleteScoreRecord(${rec.id})">删除</button>
-                `;
+                div.innerHTML = `<div class="score-record-info"><strong>${rec.examName}</strong> (${rec.date})<br>总分: ${rec.total}  |  平均分: ${rec.average}<br><span style="font-size:12px;">${rec.scores.map((s,i)=>`${subjectNames[i]}:${s}`).join(" | ")}</span></div><button class="delete-record-btn" onclick="deleteScoreRecord(${rec.id})">删除</button>`;
                 container.appendChild(div);
             });
         }
+
         function saveTargetScore() {
             let target = parseFloat(document.getElementById("targetTotalScore").value);
             if (isNaN(target) || target<0 || target>750) { alert("请输入0~750之间的目标总分"); return; }
             localStorage.setItem("gyez_score_target", target);
             updateTargetDisplay();
         }
+
         function updateTargetDisplay() {
             let target = localStorage.getItem("gyez_score_target");
             let displayDiv = document.getElementById("targetDisplay");
@@ -1473,6 +644,7 @@
             let gapText = (gap !== null) ? (gap >=0 ? `还差 ${gap} 分` : `已超出 ${-gap} 分`) : "暂无最近成绩";
             displayDiv.innerHTML = `🎯 目标总分：${target} 分<br>📊 最近一次：${lastTotal ? lastTotal : "无"} 分<br>${gapText}`;
         }
+
         function updateScoreChart() {
             let records = loadScoreRecords();
             let sorted = [...records].sort((a,b) => new Date(a.date) - new Date(b.date));
@@ -1488,7 +660,7 @@
             });
         }
 
-        // ---------- 原有其他功能（保留） ----------
+        // ---------- 其他原有工具 ----------
         function calculateAverageScore() {
             let scores = [], total = 0;
             for (let i=1;i<=8;i++) {
@@ -1500,6 +672,7 @@
             let level = avg>=90?'优秀':avg>=80?'良好':avg>=70?'中等':avg>=60?'及格':'不及格';
             document.getElementById('scoreResult').textContent = `共计算 ${scores.length} 科成绩：总分 ${total} 分，平均分 ${avg} 分，综合评级：${level}`;
         }
+
         function saveDutyRecord() {
             let text = document.getElementById('dutyRecord').value;
             localStorage.setItem('gyez_duty_data', escapeHtml(text));
@@ -1565,46 +738,25 @@
             let rand = Math.floor(Math.random() * (max - min + 1)) + min;
             document.getElementById('rollResult').textContent = `🎉 被点到：${rand} 号`;
         }
-
-        // ---------- 倒计时模块（修复版） ----------
-        let countdownInterval = null; // 全局计时器变量
         function startCountdown() {
-            // 获取输入值
-            let title = document.getElementById('countdown-title').value.trim();
-            let dateStr = document.getElementById('countdown-date').value;
-            if (!title) title = "目标事件";
-            if (!dateStr) {
-                document.getElementById('countdown-result').textContent = '请选择日期';
-                return;
-            }
-            let targetDate = new Date(dateStr);
-            if (isNaN(targetDate.getTime())) {
-                document.getElementById('countdown-result').textContent = '日期无效';
-                return;
-            }
-            // 清除之前的计时器
             if (countdownInterval) clearInterval(countdownInterval);
-            // 更新显示函数
-            function updateDisplay() {
-                let now = new Date();
-                let diff = targetDate - now;
-                if (diff <= 0) {
-                    document.getElementById('countdown-result').textContent = `${escapeHtml(title)} 已结束！`;
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                    return;
-                }
-                let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                document.getElementById('countdown-result').textContent = `${escapeHtml(title)} 还有：${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+            let title = escapeHtml(document.getElementById('countdown-title').value.trim()) || '目标事件';
+            let targetDate = new Date(document.getElementById('countdown-date').value);
+            if (isNaN(targetDate.getTime())) { document.getElementById('countdown-result').textContent = '请选择有效的日期'; return; }
+            function update() {
+                let diff = targetDate - new Date();
+                if (diff <= 0) { document.getElementById('countdown-result').textContent = `${title} 已结束！`; clearInterval(countdownInterval); countdownInterval = null; return; }
+                let days = Math.floor(diff/(1000*60*60*24));
+                let hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+                let mins = Math.floor((diff%(1000*60*60))/(1000*60));
+                let secs = Math.floor((diff%(1000*60))/1000);
+                document.getElementById('countdown-result').textContent = `${title} 还有：${days}天 ${hours}时 ${mins}分 ${secs}秒`;
             }
-            updateDisplay();
-            countdownInterval = setInterval(updateDisplay, 1000);
+            update();
+            countdownInterval = setInterval(update, 1000);
         }
 
-        // ---------- 其他原有函数 ----------
+        // ---------- 天气 ----------
         function fetchWeather() {
             const defaultLat = 26.65, defaultLon = 106.63;
             if (navigator.geolocation) {
@@ -1636,6 +788,8 @@
                     document.getElementById('weatherTemp').textContent='--℃';
                 });
         }
+
+        // ---------- 课前提醒 ----------
         function checkAndRemind() {
             const now = new Date();
             const currentMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
@@ -1667,11 +821,11 @@
             const diff = nextCourse.start - currentMin;
             if (diff > 0 && diff <= 2) {
                 const key = `${now.getDay()}_${nextCourse.start}_${nextCourse.name}`;
-                if (window.lastRemindedKey === key) return;
+                if (lastRemindedKey === key) return;
                 document.getElementById('nextCourseName').textContent = escapeHtml(nextCourse.name);
                 document.getElementById('nextCourseTime').textContent = `${nextCourse.startStr} - ${nextCourse.endStr}`;
                 document.getElementById('reminderOverlay').style.display = 'flex';
-                window.lastRemindedKey = key;
+                lastRemindedKey = key;
                 if (window.reminderTimeout) clearTimeout(window.reminderTimeout);
                 window.reminderTimeout = setTimeout(closeReminderOverlay, 5000);
             }
@@ -1682,21 +836,13 @@
             if (window.reminderTimeout) clearTimeout(window.reminderTimeout);
             window.reminderTimeout = null;
         }
-        function scrollToTop() { window.scrollTo({top:0,behavior:'smooth'}); }
-        function initBackToTop() {
-            const btn = document.getElementById('backToTop');
-            window.addEventListener('scroll', () => btn.style.display = window.pageYOffset>300 ? 'flex' : 'none');
-        }
-        function closeEditModal() { document.querySelectorAll('.edit-modal').forEach(m=>m.style.display='none'); }
 
-        // 课程表相关函数
+        // ---------- 课程表相关 ----------
         function saveTitleEdit() {
             const newMain = escapeHtml(document.getElementById('newMainTitle').value);
             const newSub = escapeHtml(document.getElementById('newSubTitle').value);
-            const mainTitle = document.getElementById('mainTitle');
-            const subTitle = document.getElementById('subTitle');
-            if (newMain && mainTitle) mainTitle.textContent = newMain;
-            if (newSub && subTitle) subTitle.textContent = newSub;
+            if (newMain) document.getElementById('mainTitle').textContent = newMain;
+            if (newSub) document.getElementById('subTitle').textContent = newSub;
             localStorage.setItem('gyez_title_data', JSON.stringify({ main: newMain, sub: newSub }));
             closeEditModal();
             alert('标题修改已保存！');
@@ -1729,9 +875,18 @@
             if (!slotName || !slotRange) { alert('时间段名称和时间范围不能为空！'); return; }
             const timePattern = /^\d{2}:\d{2}-\d{2}:\d{2}$/;
             if (!timePattern.test(slotRange)) { alert('时间格式错误，请使用如 19:00-21:00 的格式'); return; }
-            const timetable = document.getElementById('editableTimetable').querySelector('tbody');
+            const tbody = document.querySelector('#editableTimetable tbody');
+            const rows = tbody.querySelectorAll('tr');
+            // 计算新行号：当前最大data-row + 1
+            let maxRow = 0;
+            rows.forEach(row => {
+                row.querySelectorAll('.editable').forEach(cell => {
+                    let r = parseInt(cell.getAttribute('data-row'));
+                    if (!isNaN(r) && r > maxRow) maxRow = r;
+                });
+            });
+            let newRowId = maxRow + 1;
             const newRow = document.createElement('tr');
-            newRow.id = `timeRow${rowCounter}`;
             const timeCell = document.createElement('td');
             timeCell.className = 'time-slot';
             timeCell.innerHTML = `${slotName}<br>${slotRange}`;
@@ -1739,49 +894,38 @@
             for (let i = 1; i <= 7; i++) {
                 const cell = document.createElement('td');
                 cell.className = 'editable';
-                cell.setAttribute('data-row', rowCounter);
+                cell.setAttribute('data-row', newRowId);
                 cell.setAttribute('data-col', i);
                 cell.textContent = '-';
-                cell.addEventListener('click', () => {
-                    if (isEditing) {
-                        document.getElementById('editRow').value = rowCounter;
-                        document.getElementById('editCol').value = i;
-                        document.getElementById('courseName').value = '';
-                        document.getElementById('courseEditModal').style.display = 'flex';
-                    }
-                });
                 newRow.appendChild(cell);
             }
+            // 找到午休行之后插入
             const noonRow = document.getElementById('timeRow5');
             if (noonRow) noonRow.parentNode.insertBefore(newRow, noonRow.nextSibling);
-            rowCounter++;
+            else tbody.appendChild(newRow);
             closeEditModal();
             alert('新时间段已添加！');
         }
 
-        // 分贝检测相关函数（简化示例，实际使用需完善）
-        let isDetecting = false, mediaStream = null, audioContext, analyser, detectionInterval;
-        function createVisualizerBars() { /* 占位 */ }
-        function updateVisualizer(v) { /* 占位 */ }
-        function calculateDecibels() { return 0; }
-        function detectDecibels() { /* 占位 */ }
+        // ---------- 分贝检测实现 ----------
         async function startDecibelDetection() {
             if (isDetecting) return;
             try {
-                audioContext = new (window.AudioContext||window.webkitAudioContext)();
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaStream = stream;
                 const microphone = audioContext.createMediaStreamSource(stream);
                 microphone.connect(analyser);
-                analyser.fftSize = 2048;
-                createVisualizerBars();
+                await audioContext.resume();
                 isDetecting = true;
                 document.getElementById('decibelStatus').textContent = '正在检测中...';
                 document.getElementById('startDecibelBtn').disabled = true;
                 document.getElementById('stopDecibelBtn').disabled = false;
                 detectionInterval = setInterval(detectDecibels, 200);
             } catch (error) {
+                console.error(error);
                 document.getElementById('decibelStatus').textContent = '无法访问麦克风，请检查权限';
                 alert('无法访问麦克风！');
             }
@@ -1795,16 +939,39 @@
             document.getElementById('decibelStatus').textContent = '已停止检测';
             document.getElementById('startDecibelBtn').disabled = false;
             document.getElementById('stopDecibelBtn').disabled = true;
+            document.getElementById('decibelValue').textContent = '0';
+            document.getElementById('decibelWarning').style.display = 'none';
+            document.getElementById('volumeBar').style.width = '0%';
+        }
+        function detectDecibels() {
+            if (!analyser || !isDetecting) return;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteTimeDomainData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                let v = (dataArray[i] - 128) / 128;
+                sum += v * v;
+            }
+            let rms = Math.sqrt(sum / dataArray.length);
+            // 映射到0~100dB左右（经验值）
+            let db = Math.min(100, Math.max(0, Math.floor(rms * 80 + 20)));
+            document.getElementById('decibelValue').textContent = db;
+            const threshold = parseInt(document.getElementById('decibelThreshold').value) || 80;
+            if (db >= threshold) document.getElementById('decibelWarning').style.display = 'block';
+            else document.getElementById('decibelWarning').style.display = 'none';
+            // 更新音量条
+            let percent = Math.min(100, (db / 100) * 100);
+            document.getElementById('volumeBar').style.width = percent + '%';
         }
 
-        // 知识点数据库（完整版，仅保留必要结构，实际完整内容已在原代码中，此处为了代码简洁仅占位）
+        // ---------- 知识点数据库 ----------
         const knowledgeDatabase = {
-            chinese: { name: '语文', chapters: [{ id: 'ch1', name: '必修一 - 现代文阅读', content: '<h4>现代文阅读技巧</h4><ul><li><strong>理解文中重要词语的含义</strong><br>词语在语境中的特定含义，包括指代义、比喻义、隐含义等。需结合上下文推断。</li></ul>' }] },
-            math: { name: '数学', chapters: [{ id: 'm1', name: '必修一 - 集合与函数', content: '<h4>集合与函数</h4><ul><li><strong>集合的基本概念与运算</strong><br>集合是由一些确定的对象组成的整体。</li></ul>' }] },
+            chinese: { name: '语文', chapters: [{ id: 'ch1', name: '必修一 - 现代文阅读', content: '<h4>现代文阅读技巧</h4><ul><li><strong>理解文中重要词语的含义</strong><br>词语在语境中的特定含义，包括指代义、比喻义、隐含义等。需结合上下文推断。</li><li><strong>筛选并整合文中信息</strong><br>通过关键词、中心句快速定位信息，归纳要点。</li></ul>' }, { id: 'ch2', name: '必修二 - 文言文阅读', content: '<h4>文言文阅读基础</h4><ul><li><strong>常见实词虚词</strong><br>之、其、而、以、于等用法。</li><li><strong>特殊句式</strong><br>判断句、被动句、省略句、倒装句。</li></ul>' }] },
+            math: { name: '数学', chapters: [{ id: 'm1', name: '必修一 - 集合与函数', content: '<h4>集合与函数</h4><ul><li><strong>集合的基本概念与运算</strong><br>集合是由一些确定的对象组成的整体。</li><li><strong>函数定义域与值域</strong><br>常见函数定义域求解方法。</li></ul>' }] },
             english: { name: '英语', chapters: [{ id: 'e1', name: '必修一 - 语法基础', content: '<h4>语法基础</h4><ul><li><strong>时态：一般现在、一般过去、一般将来</strong><br>一般现在表经常性或客观事实。</li></ul>' }] },
-            physics: { name: '物理', chapters: [{ id: 'p1', name: '必修一 - 运动学', content: '<h4>运动学</h4><ul><li><strong>质点、参考系</strong><br>质点：忽略形状大小，只有质量的点。</li></ul>' }] },
+            physics: { name: '物理', chapters: [{ id: 'p1', name: '必修一 - 运动学', content: '<h4>运动学</h4><ul><li><strong>质点、参考系</strong><br>质点：忽略形状大小，只有质量的点。</li><li><strong>匀变速直线运动公式</strong><br>v = v0 + at, s = v0t + ½at²</li></ul>' }] },
             chemistry: { name: '化学', chapters: [{ id: 'c1', name: '必修一 - 化学实验基础', content: '<h4>化学实验基础</h4><ul><li><strong>常用仪器使用</strong><br>试管、烧杯、量筒、酒精灯、漏斗、蒸发皿等。</li></ul>' }] },
-            biology: { name: '生物', chapters: [{ id: 'b1', name: '必修一 - 细胞的分子组成', content: '<h4>细胞的分子组成</h4><ul><li><strong>蛋白质的结构与功能</strong><br>基本单位是氨基酸。</li></ul>' }] },
+            biology: { name: '生物', chapters: [{ id: 'b1', name: '必修一 - 细胞的分子组成', content: '<h4>细胞的分子组成</h4><ul><li><strong>蛋白质的结构与功能</strong><br>基本单位是氨基酸。</li><li><strong>核酸的种类与分布</strong><br>DNA主要分布在细胞核，RNA主要分布在细胞质。</li></ul>' }] },
             history: { name: '历史', chapters: [{ id: 'h1', name: '必修一 - 中国古代政治制度', content: '<h4>中国古代政治制度</h4><ul><li><strong>早期政治制度：分封制、宗法制</strong><br>分封制：周王分封诸侯，以藩屏周。</li></ul>' }] },
             politics: { name: '政治', chapters: [{ id: 'po1', name: '必修一 - 经济生活', content: '<h4>经济生活</h4><ul><li><strong>货币的本质与职能</strong><br>货币是从商品中分离出来的固定充当一般等价物的商品。</li></ul>' }] },
             geography: { name: '地理', chapters: [{ id: 'g1', name: '必修一 - 宇宙中的地球', content: '<h4>宇宙中的地球</h4><ul><li><strong>地球的宇宙环境</strong><br>天体系统层次：地月系→太阳系→银河系→总星系。</li></ul>' }] }
@@ -1829,58 +996,15 @@
             knowledgeContent.innerHTML = ch ? ch.content : '暂无该章节知识点';
         }
 
-        // 校园地图导航模块
-        const campusSpots = [
-            { name: "教学楼", description: "高中部主教学楼，共6层，设有普通教室、教师办公室。", route: "从校门直走100米，右侧即为教学楼。", left: "30%", top: "35%" },
-            { name: "食堂", description: "两层餐厅，提供早中晚餐，一层为快餐，二层为风味窗口。", route: "教学楼后方直走，经过操场左侧即可到达。", left: "65%", top: "45%" },
-            { name: "图书馆", description: "藏书3万册，设有自习室，开放时间 8:00-18:00。", route: "操场东侧，与行政楼相邻。", left: "20%", top: "70%" },
-            { name: "操场", description: "400米标准跑道，篮球场、足球场。", route: "校园中央，教学楼正后方。", left: "50%", top: "55%" },
-            { name: "实验楼", description: "物理、化学、生物实验室及多媒体教室。", route: "教学楼西侧，与艺术楼相连。", left: "40%", top: "20%" }
-        ];
-        function renderMapMarkers() {
-            const container = document.getElementById("mapMarkers");
-            if (!container) return;
-            container.innerHTML = "";
-            campusSpots.forEach((spot, index) => {
-                const marker = document.createElement("div");
-                marker.className = "map-marker";
-                marker.style.position = "absolute";
-                marker.style.left = spot.left;
-                marker.style.top = spot.top;
-                marker.style.width = "24px";
-                marker.style.height = "24px";
-                marker.style.backgroundColor = "#ff5722";
-                marker.style.borderRadius = "50%";
-                marker.style.border = "2px solid white";
-                marker.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
-                marker.style.cursor = "pointer";
-                marker.style.pointerEvents = "auto";
-                marker.style.zIndex = "10";
-                marker.style.transform = "translate(-50%, -50%)";
-                marker.style.display = "flex";
-                marker.style.alignItems = "center";
-                marker.style.justifyContent = "center";
-                marker.style.color = "white";
-                marker.style.fontWeight = "bold";
-                marker.style.fontSize = "12px";
-                marker.textContent = index + 1;
-                marker.title = spot.name;
-                marker.onclick = () => showSpotInfo(spot);
-                container.appendChild(marker);
-            });
-        }
-        function showSpotInfo(spot) {
-            const infoDiv = document.getElementById("mapInfo");
-            if (infoDiv) {
-                infoDiv.innerHTML = `<strong>📍 ${spot.name}</strong><br>${spot.description}<br><span style="color:#005aa7;">🚶 路线指引：</span> ${spot.route}`;
-            }
-        }
-        function resetMapInfo() {
-            const infoDiv = document.getElementById("mapInfo");
-            if (infoDiv) infoDiv.innerHTML = "点击标注点查看详情";
+        // ---------- 其他辅助函数 ----------
+        function closeEditModal() { document.querySelectorAll('.edit-modal').forEach(m=>m.style.display='none'); }
+        function scrollToTop() { window.scrollTo({top:0,behavior:'smooth'}); }
+        function initBackToTop() {
+            const btn = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => btn.style.display = window.pageYOffset>300 ? 'flex' : 'none');
         }
 
-        // DOMContentLoaded 初始化
+        // ---------- DOM加载完成 ----------
         document.addEventListener('DOMContentLoaded', function() {
             // 时间显示
             const currentTimeEl = document.getElementById('currentTime');
@@ -1904,13 +1028,14 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             });
-            // 标题加载
+            // 加载标题
             const savedTitle = localStorage.getItem('gyez_title_data');
             if (savedTitle) {
                 const titleData = JSON.parse(savedTitle);
                 if (titleData.main) document.getElementById('mainTitle').textContent = titleData.main;
                 if (titleData.sub) document.getElementById('subTitle').textContent = titleData.sub;
             }
+            // 加载值日表、电话、备忘录、课程表
             loadDutyRecord();
             const scheduleSelect = document.getElementById('scheduleSelect');
             if (scheduleSelect) {
@@ -1943,7 +1068,7 @@
             setTimeout(checkAndRemind, 1000);
             initBackToTop();
 
-            // 课程表编辑按钮事件
+            // 课程表编辑模式按钮
             const editBtn = document.getElementById('editTimetableBtn');
             const saveBtn = document.getElementById('saveTimetableBtn');
             const addTimeBtn = document.getElementById('addTimeBtn');
@@ -1985,17 +1110,29 @@
                     document.getElementById('titleEditModal').style.display = 'flex';
                 });
             }
-            document.querySelectorAll('.editable').forEach(cell => {
-                cell.addEventListener('click', () => {
-                    if (isEditing) {
-                        document.getElementById('editRow').value = cell.getAttribute('data-row');
-                        document.getElementById('editCol').value = cell.getAttribute('data-col');
-                        document.getElementById('courseName').value = cell.innerText.split('\n')[0] || '';
-                        document.getElementById('teacherName').value = '';
-                        document.getElementById('classroom').value = '';
-                        document.getElementById('courseEditModal').style.display = 'flex';
-                    }
-                });
+            // 课程编辑事件委托
+            document.querySelector('#editableTimetable tbody').addEventListener('click', (e) => {
+                let cell = e.target.closest('.editable');
+                if (cell && isEditing) {
+                    const row = cell.getAttribute('data-row');
+                    const col = cell.getAttribute('data-col');
+                    if (!row || !col) return;
+                    document.getElementById('editRow').value = row;
+                    document.getElementById('editCol').value = col;
+                    // 解析现有课程信息：可能包含教师、教室
+                    let rawText = cell.innerHTML;
+                    let courseName = rawText.split('<br>')[0] || rawText;
+                    let teacher = '';
+                    let classroom = '';
+                    let matchTeacher = rawText.match(/\((.+?)\)/);
+                    if (matchTeacher) teacher = matchTeacher[1];
+                    let matchClass = rawText.match(/教室:(.+?)(?:<|$)/);
+                    if (matchClass) classroom = matchClass[1];
+                    document.getElementById('courseName').value = courseName;
+                    document.getElementById('teacherName').value = teacher;
+                    document.getElementById('classroom').value = classroom;
+                    document.getElementById('courseEditModal').style.display = 'flex';
+                }
             });
             const startDecibelBtn = document.getElementById('startDecibelBtn');
             const stopDecibelBtn = document.getElementById('stopDecibelBtn');
@@ -2013,16 +1150,8 @@
             updateTargetDisplay();
             let savedTarget = localStorage.getItem("gyez_score_target");
             if (savedTarget) document.getElementById("targetTotalScore").value = savedTarget;
-
             // 错题本初始化
             renderMistakeList();
-
-            // 校园地图初始化
-            renderMapMarkers();
-
-            // 倒计时按钮事件绑定
-            const countdownBtn = document.getElementById('startCountdownBtn');
-            if (countdownBtn) countdownBtn.addEventListener('click', startCountdown);
         });
     </script>
 </body>
