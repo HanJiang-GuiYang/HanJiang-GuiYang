@@ -112,7 +112,7 @@
             color: white;
             font-size: 15px;
             font-weight: 500;
-            border-left: 1px solid rgba(255,255,255,0.4);
+            border-left: 1px solid rgba(255, 255, 255, 0.4);
             padding-left: 12px;
             margin-left: 4px;
             white-space: nowrap;
@@ -297,8 +297,16 @@
             display: block;
         }
 
+        /* ========== 只修改这里：课程表完美居中 ========== */
         .timetable-container {
             margin-top: 15px;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .edit-btn, .save-btn, .add-time-btn {
@@ -348,12 +356,11 @@
         }
 
         .timetable {
-            width: 100%;
+            width: 100% !important;
+            max-width: 900px !important;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin: 10px auto !important;
             font-size: 14px;
-            overflow-x: auto;
-            display: block;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
@@ -1277,7 +1284,7 @@
                             <td class="time-slot">第六节<br>14:55-15:40</td>
                             <td class="editable" data-row="7" data-col="1">生物</td>
                             <td class="editable" data-row="7" data-col="2">化学</td>
-                            <td class="editable" data-row="7" data-col="3">历史</td>
+                            <td class="editable" data-row="7" data-col="3">政治</td>
                             <td class="editable" data-row="7" data-col="4">地理</td>
                             <td class="editable" data-row="7" data-col="5">体育</td>
                             <td class="editable" data-row="7" data-col="6">化学</td>
