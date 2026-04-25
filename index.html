@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园小助手 - 高中学习好帮手</title>
-    <!-- 移动端适配优化 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
-        /* 原有样式完全保留，未做任何修改（仅调整header内部布局以容纳时间和天气，但保留所有类名和功能） */
         * {
             margin: 0;
             padding: 0;
@@ -41,7 +39,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             overflow: hidden;
             border: 2px solid #005aa7;
             margin-bottom: 20px;
@@ -50,17 +48,22 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* 重新设计的header，使用flex布局，保留原有背景和颜色 */
         .header {
             background: linear-gradient(135deg, #005aa7, #2980b9);
             color: white;
             padding: 15px 20px;
             position: relative;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -68,7 +71,6 @@
             gap: 10px;
         }
 
-        /* 左侧：天气 + 时间 */
         .header-left {
             display: flex;
             align-items: center;
@@ -77,13 +79,12 @@
             backdrop-filter: blur(4px);
             padding: 6px 15px;
             border-radius: 40px;
-            border: 1px solid rgba(255,255,255,0.25);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             flex-wrap: wrap;
             min-width: 200px;
         }
 
-        /* 天气信息（从原来的绝对定位改为flex项） */
         .weather-info {
             display: flex;
             align-items: center;
@@ -95,17 +96,16 @@
 
         .weather-icon {
             font-size: 18px;
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
         }
 
         .weather-temp {
             font-weight: bold;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             padding: 2px 8px;
             border-radius: 20px;
         }
 
-        /* 新增当前时间显示 */
         .current-time {
             display: flex;
             align-items: center;
@@ -125,7 +125,6 @@
             opacity: 0.9;
         }
 
-        /* 中间标题区域 */
         .header-center {
             text-align: center;
             flex: 1 1 auto;
@@ -141,9 +140,16 @@
             opacity: 0.9;
         }
 
-        /* 右侧编辑按钮 */
-        .edit-title-btn {
-            background-color: rgba(255,255,255,0.3);
+        .header-right-btns {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .edit-title-btn,
+        .night-mode-btn {
+            background-color: rgba(255, 255, 255, 0.3);
             color: white;
             border: none;
             padding: 6px 14px;
@@ -152,16 +158,20 @@
             font-size: 13px;
             transition: all 0.3s;
             white-space: nowrap;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             font-weight: 500;
         }
 
-        .edit-title-btn:hover {
-            background-color: rgba(255,255,255,0.5);
+        .edit-title-btn:hover,
+        .night-mode-btn:hover {
+            background-color: rgba(255, 255, 255, 0.5);
             transform: scale(1.05);
         }
 
-        /* 响应式调整 */
+        .night-mode-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
         @media (max-width: 700px) {
             .header {
                 flex-direction: column;
@@ -177,15 +187,17 @@
                 order: 2;
                 width: 100%;
             }
-            .edit-title-btn {
+            .header-right-btns {
                 order: 3;
                 margin-top: 5px;
+                justify-content: center;
+                width: 100%;
             }
             .current-time {
                 border-left: none;
                 padding-left: 0;
                 margin-left: 0;
-                border-top: 1px solid rgba(255,255,255,0.3);
+                border-top: 1px solid rgba(255, 255, 255, 0.3);
                 padding-top: 6px;
                 margin-top: 4px;
                 width: 100%;
@@ -208,9 +220,13 @@
                 font-size: 13px;
                 padding: 5px 10px;
             }
+            .edit-title-btn,
+            .night-mode-btn {
+                font-size: 11px;
+                padding: 5px 10px;
+            }
         }
 
-        /* 原loader样式未变 */
         .loader {
             display: none;
             border: 3px solid #f3f3f3;
@@ -223,8 +239,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .tabs {
@@ -248,6 +268,7 @@
             border-bottom: 3px solid transparent;
             white-space: nowrap;
             position: relative;
+            color: #333;
         }
 
         .tab.active {
@@ -289,15 +310,18 @@
         }
 
         @keyframes sectionFade {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .content-section.active {
             display: block;
         }
 
-        /* ========== 只修改这里：课程表完美居中 ========== */
         .timetable-container {
             margin-top: 15px;
             width: 100%;
@@ -309,7 +333,9 @@
             align-items: center;
         }
 
-        .edit-btn, .save-btn, .add-time-btn {
+        .edit-btn,
+        .save-btn,
+        .add-time-btn {
             padding: 8px 12px;
             border: none;
             border-radius: 5px;
@@ -317,12 +343,14 @@
             margin-bottom: 10px;
             transition: all 0.3s;
             font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .edit-btn:hover, .save-btn:hover, .add-time-btn:hover {
+        .edit-btn:hover,
+        .save-btn:hover,
+        .add-time-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .edit-btn {
@@ -361,14 +389,17 @@
             border-collapse: collapse;
             margin: 10px auto !important;
             font-size: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            background-color: white;
         }
 
-        .timetable th, .timetable td {
+        .timetable th,
+        .timetable td {
             border: 1px solid #dcdfe6;
             padding: 8px 5px;
             text-align: center;
             min-width: 70px;
+            color: #333;
         }
 
         .timetable th {
@@ -401,6 +432,7 @@
         .time-slot {
             font-weight: bold;
             background-color: #f0f8ff !important;
+            color: #333;
         }
 
         .edit-modal {
@@ -410,7 +442,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -419,8 +451,12 @@
         }
 
         @keyframes modalFade {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .edit-modal-content {
@@ -430,13 +466,15 @@
             width: 100%;
             max-width: 400px;
             border: 2px solid #005aa7;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
             transform: scale(0.95);
             animation: modalSlide 0.3s ease forwards;
         }
 
         @keyframes modalSlide {
-            to { transform: scale(1); }
+            to {
+                transform: scale(1);
+            }
         }
 
         .edit-modal h3 {
@@ -459,19 +497,23 @@
             font-size: 14px;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input,
+        .form-group textarea {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
-        .form-group input:focus, .form-group textarea:focus {
+        .form-group input:focus,
+        .form-group textarea:focus {
             border-color: #005aa7;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
+            box-shadow: 0 0 0 2px rgba(0, 90, 167, 0.1);
         }
 
         .modal-buttons {
@@ -491,7 +533,7 @@
 
         .modal-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .confirm-btn {
@@ -529,12 +571,12 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .tool-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,90,167,0.15);
+            box-shadow: 0 8px 16px rgba(0, 90, 167, 0.15);
             border-color: #2980b9;
         }
 
@@ -559,7 +601,11 @@
             background: #005aa7;
         }
 
-        .schedule-tool, .score-tool, .memo-tool, .decibel-tool, .phone-tool {
+        .schedule-tool,
+        .score-tool,
+        .memo-tool,
+        .decibel-tool,
+        .phone-tool {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -573,6 +619,8 @@
             border-radius: 4px;
             font-size: 14px;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
         .score-input:focus {
@@ -591,13 +639,13 @@
             font-size: 14px;
             align-self: center;
             transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .calculate-score-btn:hover {
             background-color: #004785;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .score-result {
@@ -617,7 +665,7 @@
             padding: 20px;
             background-color: #f8fbff;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .countdown-input {
@@ -630,12 +678,14 @@
             font-size: 14px;
             display: block;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
         .countdown-input:focus {
             border-color: #005aa7;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
+            box-shadow: 0 0 0 2px rgba(0, 90, 167, 0.1);
         }
 
         .countdown-btn {
@@ -648,13 +698,13 @@
             font-size: 14px;
             margin-top: 10px;
             transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .countdown-btn:hover {
             background-color: #004785;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .countdown-display {
@@ -670,8 +720,12 @@
         }
 
         @keyframes pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.02); }
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(1.02);
+            }
         }
 
         .memo-input {
@@ -685,12 +739,14 @@
             font-size: 14px;
             flex: 1;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
         .memo-input:focus {
             border-color: #005aa7;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
+            box-shadow: 0 0 0 2px rgba(0, 90, 167, 0.1);
         }
 
         .memo-date {
@@ -701,6 +757,8 @@
             font-size: 14px;
             display: block;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
         .memo-date:focus {
@@ -725,11 +783,12 @@
             position: relative;
             transition: all 0.3s;
             border-left: 3px solid #005aa7;
+            color: #333;
         }
 
         .memo-item:hover {
             transform: translateX(5px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .memo-item .date {
@@ -770,6 +829,7 @@
             border-bottom: 1px solid #eee;
             flex-wrap: wrap;
             transition: all 0.3s;
+            color: #333;
         }
 
         .phone-item:hover {
@@ -793,6 +853,8 @@
             min-width: 150px;
             margin-bottom: 5px;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
         .phone-input:focus {
@@ -823,7 +885,7 @@
             color: #005aa7;
             margin: 15px 0;
             height: 45px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .decibel-warning {
@@ -836,9 +898,18 @@
         }
 
         @keyframes flash {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.05); }
-            100% { opacity: 1; transform: scale(1); }
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .threshold-control {
@@ -850,6 +921,7 @@
             margin-bottom: 4px;
             font-weight: bold;
             font-size: 14px;
+            color: #333;
         }
 
         .threshold-input {
@@ -861,6 +933,8 @@
             margin-right: 8px;
             font-size: 14px;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
         .threshold-input:focus {
@@ -876,12 +950,12 @@
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .decibel-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .start-btn {
@@ -914,7 +988,8 @@
             padding: 10px;
         }
 
-        .knowledge-select, .knowledge-chapter {
+        .knowledge-select,
+        .knowledge-chapter {
             width: 90%;
             max-width: 400px;
             padding: 10px;
@@ -924,12 +999,15 @@
             font-size: 14px;
             display: block;
             transition: border 0.3s;
+            background-color: #fff;
+            color: #333;
         }
 
-        .knowledge-select:focus, .knowledge-chapter:focus {
+        .knowledge-select:focus,
+        .knowledge-chapter:focus {
             border-color: #005aa7;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(0,90,167,0.1);
+            box-shadow: 0 0 0 2px rgba(0, 90, 167, 0.1);
         }
 
         .knowledge-content {
@@ -945,7 +1023,8 @@
             width: 90%;
             max-width: 800px;
             border-left: 4px solid #005aa7;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            color: #333;
         }
 
         .knowledge-content h4 {
@@ -984,7 +1063,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             font-size: 18px;
             transition: all 0.3s;
@@ -995,7 +1074,6 @@
             transform: scale(1.1) rotate(90deg);
         }
 
-        /* 音频可视化样式增强 */
         #audioVisualizer {
             gap: 2px;
         }
@@ -1004,30 +1082,29 @@
             transition: height 0.1s ease, background-color 0.2s ease;
         }
 
-        /* 响应式优化 */
         @media (max-width: 768px) {
             .school-tools {
                 grid-template-columns: 1fr;
                 gap: 15px;
             }
-            
+
             .countdown-display {
                 font-size: 24px;
             }
-            
+
             .decibel-display {
                 font-size: 28px;
             }
-            
+
             .tabs {
                 font-size: 14px;
             }
-            
+
             .content {
                 padding: 10px;
                 min-height: 400px;
             }
-            
+
             .tool-card {
                 padding: 15px;
             }
@@ -1041,12 +1118,13 @@
             .timetable {
                 font-size: 12px;
             }
-            
-            .timetable th, .timetable td {
+
+            .timetable th,
+            .timetable td {
                 padding: 5px 3px;
                 min-width: 60px;
             }
-            
+
             .countdown-input {
                 width: 100%;
                 margin-right: 0;
@@ -1066,7 +1144,7 @@
                 width: 100%;
                 margin-top: 5px;
             }
-            
+
             .back-to-top {
                 bottom: 15px;
                 right: 15px;
@@ -1076,7 +1154,6 @@
             }
         }
 
-        /* 滚动条美化 */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -1096,7 +1173,6 @@
             background: #004785;
         }
 
-        /* ---------- 新增：全屏提醒浮层样式 ---------- */
         .reminder-overlay {
             position: fixed;
             top: 0;
@@ -1118,8 +1194,12 @@
         }
 
         @keyframes fadeInReminder {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .reminder-content {
@@ -1127,7 +1207,7 @@
             border-radius: 20px;
             padding: 30px 40px;
             border: 2px solid white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             max-width: 600px;
             width: 90%;
         }
@@ -1136,7 +1216,7 @@
             font-size: 2.5rem;
             margin-bottom: 15px;
             font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         .reminder-content p {
@@ -1148,7 +1228,7 @@
         .reminder-content .next-course {
             font-size: 3rem;
             font-weight: bold;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             display: inline-block;
             padding: 10px 30px;
             border-radius: 60px;
@@ -1156,14 +1236,428 @@
         }
 
         @media (max-width: 600px) {
-            .reminder-content h2 { font-size: 1.8rem; }
-            .reminder-content p { font-size: 1.3rem; }
-            .reminder-content .next-course { font-size: 2rem; }
+            .reminder-content h2 {
+                font-size: 1.8rem;
+            }
+            .reminder-content p {
+                font-size: 1.3rem;
+            }
+            .reminder-content .next-course {
+                font-size: 2rem;
+            }
+        }
+
+        /* ==================== 夜晚模式（暗黑模式）样式 ==================== */
+        body.night-mode::before {
+            background-color: rgba(0, 0, 0, 0.82);
+        }
+
+        body.night-mode .container {
+            background: #1a1d28;
+            border-color: #3a5077;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        body.night-mode .header {
+            background: linear-gradient(135deg, #1a2a40, #1e3a5c);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        body.night-mode .header-left {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        body.night-mode .weather-info {
+            color: #e0e0e0;
+        }
+
+        body.night-mode .weather-temp {
+            background: rgba(255, 255, 255, 0.15);
+            color: #e0e0e0;
+        }
+
+        body.night-mode .current-time {
+            color: #e0e0e0;
+            border-left-color: rgba(255, 255, 255, 0.25);
+        }
+
+        body.night-mode .edit-title-btn,
+        body.night-mode .night-mode-btn {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #e0e0e0;
+        }
+
+        body.night-mode .edit-title-btn:hover,
+        body.night-mode .night-mode-btn:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+
+        body.night-mode .tabs {
+            background: #1a1d28;
+            border-bottom-color: #3a5077;
+        }
+
+        body.night-mode .tab {
+            color: #b0b8c8;
+        }
+
+        body.night-mode .tab.active {
+            background-color: #252a38;
+            color: #7eb8e0;
+            border-bottom-color: #7eb8e0;
+        }
+
+        body.night-mode .tab:hover {
+            background-color: #1e2230;
+            color: #c0c8d8;
+        }
+
+        body.night-mode .tab::after {
+            background: #7eb8e0;
+        }
+
+        body.night-mode .content {
+            color: #d0d5e0;
+        }
+
+        body.night-mode .content-section h2 {
+            color: #d0d5e0;
+        }
+
+        body.night-mode .timetable {
+            background-color: #1a1d28;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        body.night-mode .timetable th {
+            background-color: #252a38;
+            color: #7eb8e0;
+            border-color: #3a4560;
+        }
+
+        body.night-mode .timetable td {
+            border-color: #3a4560;
+            color: #d0d5e0;
+        }
+
+        body.night-mode .timetable tr:nth-child(even) {
+            background-color: #1e2230;
+        }
+
+        body.night-mode .timetable tr:hover {
+            background-color: #252a38;
+        }
+
+        body.night-mode .timetable td.editable:hover {
+            background-color: #2a3040;
+            box-shadow: inset 0 0 0 1px #7eb8e0;
+        }
+
+        body.night-mode .time-slot {
+            background-color: #1e2230 !important;
+            color: #c0c8d8;
+        }
+
+        body.night-mode .tool-card {
+            background-color: #1e2230;
+            border-color: #3a5077;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        body.night-mode .tool-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 90, 167, 0.25);
+            border-color: #4a7ab5;
+        }
+
+        body.night-mode .tool-card h3 {
+            color: #7eb8e0;
+            border-bottom-color: #2a3550;
+        }
+
+        body.night-mode .tool-card h3::after {
+            background: #7eb8e0;
+        }
+
+        body.night-mode .score-result {
+            background-color: #252a38;
+            color: #d0d5e0;
+            border-left-color: #7eb8e0;
+        }
+
+        body.night-mode .countdown {
+            background-color: #1e2230;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        body.night-mode .countdown-display {
+            background-color: #252a38;
+            color: #7eb8e0;
+            border-left-color: #7eb8e0;
+        }
+
+        body.night-mode .memo-item {
+            background-color: #252a38;
+            border-left-color: #7eb8e0;
+            color: #d0d5e0;
+        }
+
+        body.night-mode .memo-item .date {
+            color: #9aa0b0;
+        }
+
+        body.night-mode .phone-item {
+            border-bottom-color: #3a4560;
+            color: #d0d5e0;
+        }
+
+        body.night-mode .phone-item:hover {
+            background-color: #1e2230;
+        }
+
+        body.night-mode .knowledge-content {
+            background-color: #252a38;
+            color: #d0d5e0;
+            border-left-color: #7eb8e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        body.night-mode .knowledge-content h4 {
+            color: #7eb8e0;
+            border-bottom-color: #7eb8e0;
+        }
+
+        body.night-mode .knowledge-content li:hover {
+            color: #7eb8e0;
+        }
+
+        body.night-mode .edit-modal-content {
+            background: #1e2230;
+            border-color: #3a5077;
+            color: #d0d5e0;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        body.night-mode .edit-modal h3 {
+            color: #7eb8e0;
+            border-bottom-color: #2a3550;
+        }
+
+        body.night-mode .form-group label {
+            color: #c0c8d8;
+        }
+
+        body.night-mode .form-group input,
+        body.night-mode .form-group textarea {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .form-group input:focus,
+        body.night-mode .form-group textarea:focus {
+            border-color: #7eb8e0;
+            box-shadow: 0 0 0 2px rgba(126, 184, 224, 0.15);
+        }
+
+        body.night-mode .score-input {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .score-input:focus {
+            border-color: #7eb8e0;
+        }
+
+        body.night-mode .memo-input {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .memo-input:focus {
+            border-color: #7eb8e0;
+            box-shadow: 0 0 0 2px rgba(126, 184, 224, 0.15);
+        }
+
+        body.night-mode .memo-date {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .memo-date:focus {
+            border-color: #7eb8e0;
+        }
+
+        body.night-mode .phone-input {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .phone-input:focus {
+            border-color: #7eb8e0;
+        }
+
+        body.night-mode .countdown-input {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .countdown-input:focus {
+            border-color: #7eb8e0;
+            box-shadow: 0 0 0 2px rgba(126, 184, 224, 0.15);
+        }
+
+        body.night-mode .threshold-input {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .threshold-input:focus {
+            border-color: #7eb8e0;
+        }
+
+        body.night-mode .threshold-label {
+            color: #c0c8d8;
+        }
+
+        body.night-mode .knowledge-select,
+        body.night-mode .knowledge-chapter {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .knowledge-select:focus,
+        body.night-mode .knowledge-chapter:focus {
+            border-color: #7eb8e0;
+            box-shadow: 0 0 0 2px rgba(126, 184, 224, 0.15);
+        }
+
+        body.night-mode .status-text {
+            color: #9aa0b0;
+        }
+
+        body.night-mode .decibel-display {
+            color: #7eb8e0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        body.night-mode .schedule-result {
+            color: #d0d5e0;
+        }
+
+        body.night-mode #audioVisualizer {
+            background-color: #1a1d28 !important;
+        }
+
+        body.night-mode .edit-modal {
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        body.night-mode .reminder-overlay {
+            background-color: rgba(20, 40, 70, 0.92);
+        }
+
+        body.night-mode .reminder-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        body.night-mode .back-to-top {
+            background-color: #3a5077;
+        }
+
+        body.night-mode .back-to-top:hover {
+            background-color: #4a6088;
+        }
+
+        body.night-mode ::-webkit-scrollbar-track {
+            background: #1a1d28;
+        }
+
+        body.night-mode ::-webkit-scrollbar-thumb {
+            background: #3a5077;
+        }
+
+        body.night-mode ::-webkit-scrollbar-thumb:hover {
+            background: #4a6088;
+        }
+
+        body.night-mode #scheduleResult {
+            color: #d0d5e0;
+        }
+
+        body.night-mode #dutyRecord {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode #dutyRecord:focus {
+            border-color: #7eb8e0;
+        }
+
+        body.night-mode #rollResult {
+            color: #d0d5e0;
+            background-color: #252a38;
+            border-left-color: #7eb8e0;
+        }
+
+        body.night-mode #rollMin,
+        body.night-mode #rollMax {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode #rollMin:focus,
+        body.night-mode #rollMax:focus {
+            border-color: #7eb8e0;
+        }
+
+        body.night-mode .schedule-select {
+            background-color: #252a38;
+            border-color: #3a4560;
+            color: #e0e0e0;
+        }
+
+        body.night-mode .schedule-select:focus {
+            border-color: #7eb8e0;
+        }
+
+        /* ========== AI 聊天界面夜间模式适配 ========== */
+        body.night-mode #chatMessages {
+            background-color: #1a1d28 !important;
+            border-color: #3a5077;
+        }
+        body.night-mode #chatInput {
+            background-color: #252a38;
+            color: #e0e0e0;
+            border-color: #3a4560;
+        }
+        body.night-mode #chatInput:focus {
+            border-color: #7eb8e0;
+        }
+        body.night-mode #sendChatBtn {
+            background-color: #3a5077;
+        }
+        body.night-mode #sendChatBtn:hover {
+            background-color: #4a6088;
+        }
+        body.night-mode #chatLoading {
+            color: #9aa0b0;
         }
     </style>
 </head>
 <body>
-    <!-- 新增：全屏提醒浮层 -->
     <div class="reminder-overlay" id="reminderOverlay">
         <div class="reminder-content" id="reminderContent">
             <h2>⏰ 课前提醒</h2>
@@ -1175,9 +1669,7 @@
     </div>
 
     <div class="container">
-        <!-- 重新设计的header，包含天气、时间、标题和编辑按钮 -->
         <div class="header">
-            <!-- 左侧：天气 + 时间 -->
             <div class="header-left">
                 <div class="weather-info" id="weatherInfo">
                     <span class="weather-icon" id="weatherIcon">⏳</span>
@@ -1187,132 +1679,133 @@
                 <div class="current-time" id="currentTime">--:--:--</div>
             </div>
 
-            <!-- 中间：标题区域 -->
             <div class="header-center">
                 <h1 id="mainTitle">校园小助手 - 高中学习好帮手</h1>
                 <p id="subTitle">你的校园生活和学习好帮手</p>
             </div>
 
-            <!-- 右侧：编辑标题按钮 -->
-            <button class="edit-title-btn" id="editTitleBtn">编辑标题</button>
+            <div class="header-right-btns">
+                <button class="night-mode-btn" id="nightModeBtn" title="切换夜间模式">🌙 夜间</button>
+                <button class="edit-title-btn" id="editTitleBtn">编辑标题</button>
+            </div>
         </div>
 
-        <!-- 标签页导航 -->
         <div class="tabs">
             <div class="tab active" data-tab="timetable">课程表</div>
             <div class="tab" data-tab="tools">校园工具</div>
             <div class="tab" data-tab="knowledge">知识点查询</div>
             <div class="tab" data-tab="countdown">倒计时</div>
+            <div class="tab" data-tab="aichat">🤖 AI 助手</div>   <!-- 新增AI助手标签 -->
         </div>
 
-        <!-- 内容区域 -->
         <div class="content">
-            <!-- 课程表区域 -->
             <div class="content-section active" id="timetable-section">
                 <h2 id="timetableTitle">本周课程表</h2>
                 <div class="timetable-container">
                     <button class="edit-btn" id="editTimetableBtn">编辑课程表</button>
                     <button class="save-btn" id="saveTimetableBtn">保存修改</button>
                     <button class="add-time-btn" id="addTimeBtn">添加时间段</button>
-                    
+
                     <table class="timetable" id="editableTimetable">
-                        <tr>
-                            <th>节次/时间</th>
-                            <th>周一</th>
-                            <th>周二</th>
-                            <th>周三</th>
-                            <th>周四</th>
-                            <th>周五</th>
-                            <th>周六</th>
-                            <th>周日</th>
-                        </tr>
-                        <tr id="timeRow1">
-                            <td class="time-slot">第一节<br>08:00-08:45</td>
-                            <td class="editable" data-row="1" data-col="1">语文</td>
-                            <td class="editable" data-row="1" data-col="2">数学</td>
-                            <td class="editable" data-row="1" data-col="3">英语</td>
-                            <td class="editable" data-row="1" data-col="4">物理</td>
-                            <td class="editable" data-row="1" data-col="5">化学</td>
-                            <td class="editable" data-row="1" data-col="6">自习</td>
-                            <td class="editable" data-row="1" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow2">
-                            <td class="time-slot">第二节<br>08:55-09:40</td>
-                            <td class="editable" data-row="2" data-col="1">数学</td>
-                            <td class="editable" data-row="2" data-col="2">语文</td>
-                            <td class="editable" data-row="2" data-col="3">物理</td>
-                            <td class="editable" data-row="2" data-col="4">英语</td>
-                            <td class="editable" data-row="2" data-col="5">生物</td>
-                            <td class="editable" data-row="2" data-col="6">数学</td>
-                            <td class="editable" data-row="2" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow3">
-                            <td class="time-slot">第三节<br>10:00-10:45</td>
-                            <td class="editable" data-row="3" data-col="1">英语</td>
-                            <td class="editable" data-row="3" data-col="2">物理</td>
-                            <td class="editable" data-row="3" data-col="3">数学</td>
-                            <td class="editable" data-row="3" data-col="4">语文</td>
-                            <td class="editable" data-row="3" data-col="5">历史</td>
-                            <td class="editable" data-row="3" data-col="6">英语</td>
-                            <td class="editable" data-row="3" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow4">
-                            <td class="time-slot">第四节<br>10:55-11:40</td>
-                            <td class="editable" data-row="4" data-col="1">物理</td>
-                            <td class="editable" data-row="4" data-col="2">英语</td>
-                            <td class="editable" data-row="4" data-col="3">语文</td>
-                            <td class="editable" data-row="4" data-col="4">数学</td>
-                            <td class="editable" data-row="4" data-col="5">政治</td>
-                            <td class="editable" data-row="4" data-col="6">语文</td>
-                            <td class="editable" data-row="4" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow5">
-                            <td class="time-slot">午休<br>12:00-14:00</td>
-                            <td colspan="7" style="background-color: #f0f8ff; color: #666;">午休时间</td>
-                        </tr>
-                        <tr id="timeRow6">
-                            <td class="time-slot">第五节<br>14:00-14:45</td>
-                            <td class="editable" data-row="6" data-col="1">化学</td>
-                            <td class="editable" data-row="6" data-col="2">生物</td>
-                            <td class="editable" data-row="6" data-col="3">政治</td>
-                            <td class="editable" data-row="6" data-col="4">历史</td>
-                            <td class="editable" data-row="6" data-col="5">地理</td>
-                            <td class="editable" data-row="6" data-col="6">物理</td>
-                            <td class="editable" data-row="6" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow7">
-                            <td class="time-slot">第六节<br>14:55-15:40</td>
-                            <td class="editable" data-row="7" data-col="1">生物</td>
-                            <td class="editable" data-row="7" data-col="2">化学</td>
-                            <td class="editable" data-row="7" data-col="3">政治</td>
-                            <td class="editable" data-row="7" data-col="4">地理</td>
-                            <td class="editable" data-row="7" data-col="5">体育</td>
-                            <td class="editable" data-row="7" data-col="6">化学</td>
-                            <td class="editable" data-row="7" data-col="7">-</td>
-                        </tr>
-                        <tr id="timeRow8">
-                            <td class="time-slot">第七节<br>16:00-16:45</td>
-                            <td class="editable" data-row="8" data-col="1">历史</td>
-                            <td class="editable" data-row="8" data-col="2">政治</td>
-                            <td class="editable" data-row="8" data-col="3">地理</td>
-                            <td class="editable" data-row="8" data-col="4">体育</td>
-                            <td class="editable" data-row="8" data-col="5">自习</td>
-                            <td class="editable" data-row="8" data-col="6">生物</td>
-                            <td class="editable" data-row="8" data-col="7">-</td>
-                        </tr>
+                        <thead>
+                            <tr>
+                                <th>节次/时间</th>
+                                <th>周一</th>
+                                <th>周二</th>
+                                <th>周三</th>
+                                <th>周四</th>
+                                <th>周五</th>
+                                <th>周六</th>
+                                <th>周日</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="timeRow1">
+                                <td class="time-slot">第一节<br>08:00-08:45</td>
+                                <td class="editable" data-row="1" data-col="1">语文</td>
+                                <td class="editable" data-row="1" data-col="2">数学</td>
+                                <td class="editable" data-row="1" data-col="3">英语</td>
+                                <td class="editable" data-row="1" data-col="4">物理</td>
+                                <td class="editable" data-row="1" data-col="5">化学</td>
+                                <td class="editable" data-row="1" data-col="6">自习</td>
+                                <td class="editable" data-row="1" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow2">
+                                <td class="time-slot">第二节<br>08:55-09:40</td>
+                                <td class="editable" data-row="2" data-col="1">数学</td>
+                                <td class="editable" data-row="2" data-col="2">语文</td>
+                                <td class="editable" data-row="2" data-col="3">物理</td>
+                                <td class="editable" data-row="2" data-col="4">英语</td>
+                                <td class="editable" data-row="2" data-col="5">生物</td>
+                                <td class="editable" data-row="2" data-col="6">数学</td>
+                                <td class="editable" data-row="2" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow3">
+                                <td class="time-slot">第三节<br>10:00-10:45</td>
+                                <td class="editable" data-row="3" data-col="1">英语</td>
+                                <td class="editable" data-row="3" data-col="2">物理</td>
+                                <td class="editable" data-row="3" data-col="3">数学</td>
+                                <td class="editable" data-row="3" data-col="4">语文</td>
+                                <td class="editable" data-row="3" data-col="5">历史</td>
+                                <td class="editable" data-row="3" data-col="6">英语</td>
+                                <td class="editable" data-row="3" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow4">
+                                <td class="time-slot">第四节<br>10:55-11:40</td>
+                                <td class="editable" data-row="4" data-col="1">物理</td>
+                                <td class="editable" data-row="4" data-col="2">英语</td>
+                                <td class="editable" data-row="4" data-col="3">语文</td>
+                                <td class="editable" data-row="4" data-col="4">数学</td>
+                                <td class="editable" data-row="4" data-col="5">政治</td>
+                                <td class="editable" data-row="4" data-col="6">语文</td>
+                                <td class="editable" data-row="4" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow5">
+                                <td class="time-slot">午休<br>12:00-14:00</td>
+                                <td colspan="7" style="background-color: #f0f8ff; color: #666;">午休时间</td>
+                            </tr>
+                            <tr id="timeRow6">
+                                <td class="time-slot">第五节<br>14:00-14:45</td>
+                                <td class="editable" data-row="6" data-col="1">化学</td>
+                                <td class="editable" data-row="6" data-col="2">生物</td>
+                                <td class="editable" data-row="6" data-col="3">政治</td>
+                                <td class="editable" data-row="6" data-col="4">历史</td>
+                                <td class="editable" data-row="6" data-col="5">地理</td>
+                                <td class="editable" data-row="6" data-col="6">物理</td>
+                                <td class="editable" data-row="6" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow7">
+                                <td class="time-slot">第六节<br>14:55-15:40</td>
+                                <td class="editable" data-row="7" data-col="1">生物</td>
+                                <td class="editable" data-row="7" data-col="2">化学</td>
+                                <td class="editable" data-row="7" data-col="3">政治</td>
+                                <td class="editable" data-row="7" data-col="4">地理</td>
+                                <td class="editable" data-row="7" data-col="5">体育</td>
+                                <td class="editable" data-row="7" data-col="6">化学</td>
+                                <td class="editable" data-row="7" data-col="7">-</td>
+                            </tr>
+                            <tr id="timeRow8">
+                                <td class="time-slot">第七节<br>16:00-16:45</td>
+                                <td class="editable" data-row="8" data-col="1">历史</td>
+                                <td class="editable" data-row="8" data-col="2">政治</td>
+                                <td class="editable" data-row="8" data-col="3">地理</td>
+                                <td class="editable" data-row="8" data-col="4">体育</td>
+                                <td class="editable" data-row="8" data-col="5">自习</td>
+                                <td class="editable" data-row="8" data-col="6">生物</td>
+                                <td class="editable" data-row="8" data-col="7">-</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 校园工具区域 -->
             <div class="content-section" id="tools-section">
                 <h2>校园实用工具</h2>
                 <div class="school-tools">
-                    <!-- 作息时间查询工具 -->
                     <div class="tool-card">
                         <h3>作息时间查询</h3>
                         <div class="schedule-tool">
-                            <select class="schedule-select" id="scheduleSelect">
+                            <select class="schedule-select" id="scheduleSelect" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
                                 <option value="">请选择查询项</option>
                                 <option value="morning">上午上课时间</option>
                                 <option value="noon">午休时间</option>
@@ -1320,11 +1813,10 @@
                                 <option value="evening">晚自习时间</option>
                                 <option value="leave">放学时间</option>
                             </select>
-                            <div class="schedule-result" id="scheduleResult">请选择查询内容</div>
+                            <div class="schedule-result" id="scheduleResult" style="margin-top:15px;padding:15px;background-color:#e6f0fa;border-radius:4px;color:#333;font-size:14px;flex:1;border-left:3px solid #005aa7;">请选择查询内容</div>
                         </div>
                     </div>
 
-                    <!-- 成绩计算工具 -->
                     <div class="tool-card">
                         <h3>成绩平均分计算</h3>
                         <div class="score-tool">
@@ -1345,7 +1837,6 @@
                         </div>
                     </div>
 
-                    <!-- 可编辑校园常用电话 -->
                     <div class="tool-card">
                         <h3>校园常用电话</h3>
                         <div class="phone-tool" id="phoneTool">
@@ -1382,37 +1873,33 @@
                         </div>
                     </div>
 
-                    <!-- 值日表记录 -->
                     <div class="tool-card">
                         <h3>班级值日表</h3>
                         <div style="padding: 10px; flex: 1;">
                             <textarea id="dutyRecord" rows="6" placeholder="请输入班级值日安排，例如：
-周一：张三、李四（扫地）
-周二：王五、赵六（擦黑板）
-周三：孙七、周八（倒垃圾）
-..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; transition: border 0.3s;"></textarea>
+    周一：张三、李四（扫地）
+    周二：王五、赵六（擦黑板）
+    周三：孙七、周八（倒垃圾）
+    ..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; transition: border 0.3s; background-color: #fff; color: #333;"></textarea>
                             <button class="calculate-score-btn" style="margin-top: 10px;" onclick="saveDutyRecord()">保存值日表</button>
                             <button class="calculate-score-btn" style="margin-top: 10px; margin-left: 10px;" onclick="loadDutyRecord()">加载值日表</button>
                         </div>
                     </div>
 
-                    <!-- 备忘录工具 -->
                     <div class="tool-card">
                         <h3>校园备忘录</h3>
                         <div class="memo-tool">
                             <input type="date" class="memo-date" id="memoDate">
                             <textarea class="memo-input" id="memoContent" placeholder="请输入备忘录内容，例如：
-1. 明天交数学作业
-2. 周三下午班会
-3. 周五体育课带跳绳"></textarea>
+    1. 明天交数学作业
+    2. 周三下午班会
+    3. 周五体育课带跳绳"></textarea>
                             <button class="calculate-score-btn" onclick="addMemo()">添加备忘录</button>
                             <div class="memo-list" id="memoList">
-                                <!-- 备忘录列表会动态生成 -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- 分贝检测工具 -->
                     <div class="tool-card">
                         <h3>分贝检测提醒</h3>
                         <div class="decibel-tool">
@@ -1423,30 +1910,27 @@
                             </div>
                             <button class="decibel-btn start-btn" onclick="startDecibelDetection()">开始检测</button>
                             <button class="decibel-btn stop-btn" onclick="stopDecibelDetection()" disabled>停止检测</button>
-                            
+
                             <div class="decibel-display" id="decibelValue">0</div>
                             <div class="decibel-warning" id="decibelWarning">⚠️ 声音过大！请保持安静！⚠️</div>
-                            
+
                             <div class="status-text" id="decibelStatus">未开始检测</div>
-                            
-                            <!-- 音频可视化 -->
+
                             <div style="margin-top: 20px; height: 80px; background: #e6f0fa; border-radius: 5px; overflow: hidden; position: relative;">
                                 <div id="audioVisualizer" style="display: flex; align-items: flex-end; justify-content: center; height: 100%; padding: 10px;">
-                                    <!-- 动态生成的可视化柱形 -->
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 随机学号点名器 -->
                     <div class="tool-card">
                         <h3>🎲 随机学号点名器</h3>
                         <div style="text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
                             <div>
                                 <label>学号范围：</label>
-                                <input type="number" id="rollMin" value="1" min="1" style="width: 60px; padding: 5px; transition: border 0.3s;"> 
-                                ~ 
-                                <input type="number" id="rollMax" value="45" min="1" style="width: 60px; padding: 5px; transition: border 0.3s;">
+                                <input type="number" id="rollMin" value="1" min="1" style="width: 60px; padding: 5px; transition: border 0.3s; background-color: #fff; color: #333; border: 1px solid #ddd; border-radius: 4px;">
+                                ~
+                                <input type="number" id="rollMax" value="45" min="1" style="width: 60px; padding: 5px; transition: border 0.3s; background-color: #fff; color: #333; border: 1px solid #ddd; border-radius: 4px;">
                             </div>
                             <button class="calculate-score-btn" onclick="randomRollCall()" style="margin: 10px auto;">随机点名</button>
                             <div id="rollResult" class="score-result" style="font-size: 20px; font-weight: bold;">等待抽选</div>
@@ -1455,7 +1939,6 @@
                 </div>
             </div>
 
-            <!-- 高中知识点查询区域（已扩展详细解释） -->
             <div class="content-section" id="knowledge-section">
                 <h2>高中知识点查询</h2>
                 <div class="school-tools">
@@ -1474,13 +1957,13 @@
                                 <option value="politics">政治</option>
                                 <option value="geography">地理</option>
                             </select>
-                            
-                            <select class="knowledge-chapter" id="chapterSelect" onchange="loadKnowledgePoints()">
+
+                            <select class="knowledge-chapter" id="chapterSelect" onchange="loadKnowledgePoints()" style="display:none;">
                                 <option value="">请先选择学科</option>
                             </select>
-                            
+
                             <div class="loader" id="knowledgeLoader"></div>
-                            
+
                             <div class="knowledge-content" id="knowledgeContent">
                                 请选择学科和章节查看知识点
                             </div>
@@ -1489,7 +1972,6 @@
                 </div>
             </div>
 
-            <!-- 倒计时区域 -->
             <div class="content-section" id="countdown-section">
                 <h2>考试/节日倒计时</h2>
                 <div class="countdown">
@@ -1499,15 +1981,28 @@
                     <div class="countdown-display" id="countdown-result">请设置倒计时事件</div>
                 </div>
             </div>
+
+            <!-- ========== AI 助手聊天区 ========== -->
+            <div class="content-section" id="aichat-section">
+                <h2>🤖 校园 AI 小助手（基于 DeepSeek）</h2>
+                <div class="tool-card" style="padding: 15px;">
+                    <div id="chatMessages" style="height: 450px; overflow-y: auto; background: #f9fafc; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #e0e4e8;">
+                        <div style="text-align: center; color: #8892a0;">👋 你好！我是校园 AI 助手，可以帮你解答学习问题、查询信息等。试试问我吧~</div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <textarea id="chatInput" rows="2" placeholder="输入你的问题..." style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; resize: none; font-family: inherit; font-size: 14px;"></textarea>
+                        <button id="sendChatBtn" style="background: #005aa7; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">发送</button>
+                    </div>
+                    <div id="chatLoading" style="display: none; margin-top: 10px; font-size: 13px; color: #666;">🤔 思考中...</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 返回顶部按钮 -->
     <div class="back-to-top" id="backToTop" onclick="scrollToTop()">
         ↑
     </div>
 
-    <!-- 标题编辑弹窗 -->
     <div class="edit-modal" id="titleEditModal">
         <div class="edit-modal-content">
             <h3>编辑页面标题</h3>
@@ -1526,7 +2021,6 @@
         </div>
     </div>
 
-    <!-- 添加时间段弹窗 -->
     <div class="edit-modal" id="addTimeModal">
         <div class="edit-modal-content">
             <h3>添加新的时间段</h3>
@@ -1545,7 +2039,6 @@
         </div>
     </div>
 
-    <!-- 课程表编辑弹窗 -->
     <div class="edit-modal" id="courseEditModal">
         <div class="edit-modal-content">
             <h3>编辑课程信息</h3>
@@ -1571,9 +2064,18 @@
     </div>
 
     <script>
+        // ==================== 您的 DeepSeek API Key（已修正格式） ====================
+        const DEEPSEEK_API_KEY = 'sk-3aa0e6dda6be4c9ab6e1754226264834';   // 确保没有空格和换行
+        // ==========================================================================
+
+        // 如果未填写 API Key，给一个警告并禁用发送按钮
+        if (DEEPSEEK_API_KEY === 'YOUR_API_KEY_HERE') {
+            alert('⚠️ 请先在代码中设置您的 DeepSeek API Key！\n\n找到代码开头的 DEEPSEEK_API_KEY 变量，替换为您的真实密钥。');
+        }
+
         // ---------- 全局变量 ----------
         let isEditing = false;
-        let rowCounter = 9; // 用于新增时间段行ID
+        let rowCounter = 9;
         let countdownInterval;
         let audioContext, analyser, microphone, detectionInterval, isDetecting = false;
 
@@ -1587,23 +2089,61 @@
         const editBtn = document.getElementById('editTimetableBtn');
         const saveBtn = document.getElementById('saveTimetableBtn');
         const courseEditModal = document.getElementById('courseEditModal');
+        const nightModeBtn = document.getElementById('nightModeBtn');
 
-        // ---------- 新增天气和时间元素 ----------
+        // ---------- 天气和时间元素 ----------
         const weatherIcon = document.getElementById('weatherIcon');
         const weatherDesc = document.getElementById('weatherDesc');
         const weatherTemp = document.getElementById('weatherTemp');
         const currentTimeEl = document.getElementById('currentTime');
 
-        // ---------- 新增提醒相关元素 ----------
+        // ---------- 提醒相关元素 ----------
         const reminderOverlay = document.getElementById('reminderOverlay');
         const nextCourseNameEl = document.getElementById('nextCourseName');
         const nextCourseTimeEl = document.getElementById('nextCourseTime');
-        let lastRemindedKey = ''; // 用于避免重复提醒同一节课
-        let reminderTimeout = null; // 隐藏提醒的定时器
+        let lastRemindedKey = '';
+        let reminderTimeout = null;
+
+        // ---------- 夜晚模式功能 ----------
+        function initNightMode() {
+            const savedNightMode = localStorage.getItem('gyez_night_mode');
+            if (savedNightMode === 'true') {
+                document.body.classList.add('night-mode');
+                updateNightModeBtn(true);
+            } else {
+                document.body.classList.remove('night-mode');
+                updateNightModeBtn(false);
+            }
+        }
+
+        function toggleNightMode() {
+            const isNight = document.body.classList.toggle('night-mode');
+            localStorage.setItem('gyez_night_mode', isNight ? 'true' : 'false');
+            updateNightModeBtn(isNight);
+            // 更新聊天气泡颜色（适配夜间模式）
+            updateChatBubblesForNightMode();
+        }
+
+        function updateNightModeBtn(isNight) {
+            if (isNight) {
+                nightModeBtn.innerHTML = '☀️ 日间';
+                nightModeBtn.title = '切换日间模式';
+                nightModeBtn.style.backgroundColor = 'rgba(255,255,255,0.25)';
+            } else {
+                nightModeBtn.innerHTML = '🌙 夜间';
+                nightModeBtn.title = '切换夜间模式';
+                nightModeBtn.style.backgroundColor = 'rgba(255,255,255,0.2)';
+            }
+        }
+
+        if (nightModeBtn) {
+            nightModeBtn.addEventListener('click', toggleNightMode);
+        }
 
         // ---------- 页面初始化 ----------
         document.addEventListener('DOMContentLoaded', function() {
-            // 标签页切换
+            initNightMode();
+
             const tabs = document.querySelectorAll('.tab');
             const sections = document.querySelectorAll('.content-section');
             tabs.forEach(tab => {
@@ -1614,30 +2154,24 @@
                     const tabId = tab.getAttribute('data-tab');
                     const targetSection = document.getElementById(`${tabId}-section`);
                     if (targetSection) targetSection.classList.add('active');
-                    window.scrollTo({top: 0, behavior: 'smooth'});
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             });
 
-            // 初始化返回顶部按钮的显示逻辑
             initBackToTop();
-
-            // 启动北京时间刷新
             startBeijingTime();
         });
 
         window.addEventListener('load', function() {
-            // 加载保存的标题
             const savedTitle = localStorage.getItem('gyez_title_data');
             if (savedTitle) {
                 const titleData = JSON.parse(savedTitle);
                 if (titleData.main) mainTitle.textContent = titleData.main;
                 if (titleData.sub) subTitle.textContent = titleData.sub;
             }
-            
-            // 加载值日表
+
             loadDutyRecord();
-            
-            // 初始化作息时间查询
+
             const scheduleSelect = document.getElementById('scheduleSelect');
             if (scheduleSelect) {
                 scheduleSelect.addEventListener('change', function() {
@@ -1652,13 +2186,9 @@
                 });
             }
 
-            // 加载校园电话
             loadPhoneNumbers();
-            
-            // 加载备忘录
             loadMemos();
-            
-            // 加载课程表数据
+
             const savedData = localStorage.getItem('gyez_timetable_data');
             if (savedData) {
                 const data = JSON.parse(savedData);
@@ -1670,26 +2200,22 @@
                 }
             }
 
-            // 知识点初始化：隐藏章节下拉框
             document.getElementById('chapterSelect').style.display = 'none';
 
-            // 加载天气
             fetchWeather();
+            startWeatherAutoUpdate();
 
-            // 启动课前提醒定时器（每10秒检查一次）
             setInterval(checkAndRemind, 10000);
-            // 立即执行一次检查
             setTimeout(checkAndRemind, 1000);
         });
 
         // ---------- 北京时间实时刷新 ----------
         function startBeijingTime() {
-            updateBeijingTime(); // 立即更新
-            setInterval(updateBeijingTime, 1000); // 每秒更新
+            updateBeijingTime();
+            setInterval(updateBeijingTime, 1000);
         }
 
         function updateBeijingTime() {
-            // 使用Intl格式化北京时间，确保显示为东八区时间
             const formatter = new Intl.DateTimeFormat('zh-CN', {
                 timeZone: 'Asia/Shanghai',
                 hour: '2-digit',
@@ -1702,141 +2228,261 @@
         }
 
         // ---------- 天气功能 ----------
-        function fetchWeather() {
-            // 默认贵阳坐标 (贵阳二中附近)
-            const defaultLat = 26.65;
-            const defaultLon = 106.63;
+        let weatherUpdateTimer = null;
 
-            // 尝试使用浏览器定位
+        function fetchWeather() {
+            const defaultCity = '贵阳';
+
+            weatherIcon.textContent = '⏳';
+            weatherDesc.textContent = '获取中...';
+            weatherTemp.textContent = '--℃';
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     position => {
                         const { latitude, longitude } = position.coords;
+                        console.log(`位置获取成功: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                         getWeatherFromAPI(latitude, longitude);
                     },
                     error => {
-                        console.warn('获取位置失败，使用默认贵阳坐标', error);
-                        getWeatherFromAPI(defaultLat, defaultLon);
+                        let errorMsg = '未知错误';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMsg = '用户拒绝了位置授权';
+                                console.warn('位置授权被拒绝，使用默认城市');
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMsg = '位置信息不可用';
+                                console.warn('位置不可用，使用默认城市:', errorMsg);
+                                break;
+                            case error.TIMEOUT:
+                                errorMsg = '位置请求超时';
+                                console.warn('位置请求超时，使用默认城市');
+                                break;
+                        }
+                        weatherIcon.textContent = '📍';
+                        weatherDesc.textContent = '使用默认位置';
+                        getWeatherByCity(defaultCity);
                     },
-                    { timeout: 5000 }
+                    {
+                        enableHighAccuracy: false,
+                        timeout: 8000,
+                        maximumAge: 300000
+                    }
                 );
             } else {
-                getWeatherFromAPI(defaultLat, defaultLon);
+                console.warn('浏览器不支持地理定位，使用默认城市');
+                weatherIcon.textContent = '📍';
+                weatherDesc.textContent = '使用默认位置';
+                getWeatherByCity(defaultCity);
             }
         }
 
-        function getWeatherFromAPI(lat, lon) {
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
+        function getWeatherFromAPI(lat, lon, retryCount = 0) {
+            const maxRetries = 2;
+            const url = `https://wttr.in/${lat},${lon}?format=j1&lang=zh`;
 
             fetch(url)
                 .then(response => {
-                    if (!response.ok) throw new Error('天气API响应异常');
+                    if (!response.ok) throw new Error(`天气API响应异常: ${response.status}`);
                     return response.json();
                 })
                 .then(data => {
-                    const current = data.current_weather;
-                    if (!current) throw new Error('无当前天气数据');
+                    if (!data.current_condition || !data.current_condition[0]) {
+                        throw new Error('无当前天气数据');
+                    }
 
-                    const temperature = current.temperature; // 摄氏度
-                    const weatherCode = current.weathercode;
-                    const { description, icon } = mapWeatherCode(weatherCode);
+                    const current = data.current_condition[0];
+                    const temperature = parseInt(current.temp_C);
+                    const weatherDesc = current.lang_zh && current.lang_zh[0] ? current.lang_zh[0].value : current.weatherDesc[0].value;
+                    const weatherCode = parseInt(current.weatherCode);
 
-                    // 获取当日日期字符串 (例如 "3月19日")
+                    const { description, icon } = mapWeatherCode(weatherCode, weatherDesc);
+
                     const today = new Date();
                     const month = today.getMonth() + 1;
                     const day = today.getDate();
                     const dateStr = `${month}月${day}日`;
 
-                    // 更新DOM
                     weatherIcon.textContent = icon;
                     weatherDesc.textContent = `${dateStr} ${description}`;
-                    weatherTemp.textContent = `${Math.round(temperature)}℃`;
+                    weatherTemp.textContent = `${temperature}℃`;
+                    console.log('天气数据加载成功');
                 })
                 .catch(err => {
-                    console.error('天气加载失败:', err);
-                    weatherIcon.textContent = '⚠️';
-                    weatherDesc.textContent = '天气加载失败';
-                    weatherTemp.textContent = '--℃';
+                    console.error(`天气加载失败 (尝试 ${retryCount + 1}/${maxRetries + 1}):`, err);
+                    if (retryCount < maxRetries) {
+                        console.log(`正在重试... (${retryCount + 1}/${maxRetries})`);
+                        setTimeout(() => {
+                            getWeatherFromAPI(lat, lon, retryCount + 1);
+                        }, 2000 * (retryCount + 1));
+                    } else {
+                        console.warn('wttr.in API失败，尝试备用API...');
+                        getWeatherByCity('贵阳');
+                    }
                 });
         }
 
-        // 天气代码映射 (WMO 代码简化版)
-        function mapWeatherCode(code) {
-            const map = {
-                0: { description: '晴朗', icon: '☀️' },
-                1: { description: '晴间多云', icon: '🌤' },
-                2: { description: '多云', icon: '⛅' },
-                3: { description: '阴', icon: '☁️' },
-                45: { description: '雾', icon: '🌫' },
-                48: { description: '雾凇', icon: '🌫' },
-                51: { description: '小雨', icon: '🌧' },
-                53: { description: '中雨', icon: '🌧' },
-                55: { description: '大雨', icon: '🌧' },
-                61: { description: '阵雨', icon: '🌦' },
-                63: { description: '阵雨', icon: '🌦' },
-                65: { description: '暴雨', icon: '🌦' },
-                71: { description: '小雪', icon: '🌨' },
-                73: { description: '中雪', icon: '🌨' },
-                75: { description: '大雪', icon: '🌨' },
-                77: { description: '雪粒', icon: '🌨' },
-                80: { description: '雷阵雨', icon: '⛈' },
-                81: { description: '雷阵雨', icon: '⛈' },
-                82: { description: '雷暴', icon: '⛈' },
-                95: { description: '雷暴', icon: '⛈' },
-                96: { description: '雷暴', icon: '⛈' },
-                99: { description: '雷暴', icon: '⛈' }
+        function getWeatherByCity(city, retryCount = 0) {
+            const maxRetries = 2;
+            const url = `https://wttr.in/${city}?format=j1&lang=zh`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`天气API响应异常: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.current_condition || !data.current_condition[0]) {
+                        throw new Error('无当前天气数据');
+                    }
+
+                    const current = data.current_condition[0];
+                    const temperature = parseInt(current.temp_C);
+                    const weatherDesc = current.lang_zh && current.lang_zh[0] ? current.lang_zh[0].value : current.weatherDesc[0].value;
+                    const weatherCode = parseInt(current.weatherCode);
+
+                    const { description, icon } = mapWeatherCode(weatherCode, weatherDesc);
+
+                    const today = new Date();
+                    const month = today.getMonth() + 1;
+                    const day = today.getDate();
+                    const dateStr = `${month}月${day}日`;
+
+                    weatherIcon.textContent = icon;
+                    weatherDesc.textContent = `${dateStr} ${description}`;
+                    weatherTemp.textContent = `${temperature}℃`;
+                    console.log('天气数据加载成功（按城市）');
+                })
+                .catch(err => {
+                    console.error(`城市天气加载失败 (尝试 ${retryCount + 1}/${maxRetries + 1}):`, err);
+                    if (retryCount < maxRetries) {
+                        console.log(`正在重试... (${retryCount + 1}/${maxRetries})`);
+                        setTimeout(() => {
+                            getWeatherByCity(city, retryCount + 1);
+                        }, 2000 * (retryCount + 1));
+                    } else {
+                        weatherIcon.textContent = '⚠️';
+                        weatherDesc.textContent = '天气加载失败';
+                        weatherTemp.textContent = '--℃';
+                    }
+                });
+        }
+
+        function mapWeatherCode(code, desc = '') {
+            const codeMap = {
+                113: { description: '晴朗', icon: '☀️' },
+                116: { description: '多云', icon: '⛅' },
+                119: { description: '阴天', icon: '☁️' },
+                122: { description: '阴天', icon: '☁️' },
+                143: { description: '雾', icon: '🌫️' },
+                176: { description: '小阵雨', icon: '🌦️' },
+                179: { description: '小阵雪', icon: '🌨️' },
+                182: { description: '小阵雪', icon: '🌨️' },
+                185: { description: '冻雨', icon: '🌧️' },
+                200: { description: '雷阵雨', icon: '⛈️' },
+                227: { description: '吹雪', icon: '❄️' },
+                230: { description: '暴风雪', icon: '❄️' },
+                248: { description: '雾', icon: '🌫️' },
+                260: { description: '冻雾', icon: '🌫️' },
+                263: { description: '小毛毛雨', icon: '🌦️' },
+                266: { description: '小毛毛雨', icon: '🌦️' },
+                281: { description: '冻毛毛雨', icon: '🌧️' },
+                284: { description: '强冻毛毛雨', icon: '🌧️' },
+                293: { description: '小雨', icon: '🌦️' },
+                296: { description: '小雨', icon: '🌦️' },
+                299: { description: '中雨', icon: '🌧️' },
+                302: { description: '中雨', icon: '🌧️' },
+                305: { description: '大雨', icon: '🌧️' },
+                308: { description: '暴雨', icon: '⛈️' },
+                311: { description: '冻雨', icon: '🌧️' },
+                314: { description: '强冻雨', icon: '🌧️' },
+                317: { description: '雨夹雪', icon: '🌨️' },
+                320: { description: '雨夹雪', icon: '🌨️' },
+                323: { description: '小雪', icon: '🌨️' },
+                326: { description: '小雪', icon: '🌨️' },
+                329: { description: '中雪', icon: '🌨️' },
+                332: { description: '中雪', icon: '🌨️' },
+                335: { description: '大雪', icon: '❄️' },
+                338: { description: '大雪', icon: '❄️' },
+                350: { description: '冰粒', icon: '🌨️' },
+                353: { description: '小阵雨', icon: '🌦️' },
+                356: { description: '中阵雨', icon: '🌧️' },
+                359: { description: '大阵雨', icon: '⛈️' },
+                362: { description: '小阵雪', icon: '🌨️' },
+                365: { description: '小阵雪', icon: '🌨️' },
+                368: { description: '小阵雪', icon: '🌨️' },
+                371: { description: '大阵雪', icon: '❄️' },
+                374: { description: '冰粒', icon: '🌨️' },
+                377: { description: '冰粒', icon: '🌨️' },
+                386: { description: '雷阵雨', icon: '⛈️' },
+                389: { description: '大雷雨', icon: '⛈️' },
+                392: { description: '雷阵雪', icon: '⛈️' },
+                395: { description: '大雷阵雪', icon: '⛈️' }
             };
-            return map[code] || { description: '其他', icon: '🌈' };
+
+            if (codeMap[code]) {
+                return codeMap[code];
+            }
+
+            if (desc) {
+                if (desc.includes('晴')) return { description: desc, icon: '☀️' };
+                if (desc.includes('云')) return { description: desc, icon: '⛅' };
+                if (desc.includes('阴')) return { description: desc, icon: '☁️' };
+                if (desc.includes('雾')) return { description: desc, icon: '🌫️' };
+                if (desc.includes('雷')) return { description: desc, icon: '⛈️' };
+                if (desc.includes('雪') || desc.includes('冰')) return { description: desc, icon: '❄️' };
+                if (desc.includes('雨')) return { description: desc, icon: '🌧️' };
+            }
+
+            return { description: desc || '未知天气', icon: '🌈' };
+        }
+
+        function startWeatherAutoUpdate() {
+            if (weatherUpdateTimer) {
+                clearInterval(weatherUpdateTimer);
+            }
+            weatherUpdateTimer = setInterval(() => {
+                console.log('自动更新天气数据...');
+                fetchWeather();
+            }, 30 * 60 * 1000);
         }
 
         // ---------- 课前2分钟提醒功能 ----------
         function checkAndRemind() {
-            // 解析当前时间
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
             const currentSecond = now.getSeconds();
             const currentTimeInMinutes = currentHour * 60 + currentMinute + currentSecond / 60;
 
-            // 获取当天星期几（0=周日,1=周一,...,6=周六）
-            const dayOfWeek = now.getDay(); // 0周日
-            // 表格列索引：周一col=1,周二col=2,周三col=3,周四col=4,周五col=5,周六col=6,周日col=7
+            const dayOfWeek = now.getDay();
             let colIndex;
-            if (dayOfWeek === 0) colIndex = 7; // 周日
-            else colIndex = dayOfWeek; // 周一=1,...周六=6
+            if (dayOfWeek === 0) colIndex = 7;
+            else colIndex = dayOfWeek;
 
-            // 获取课程表所有行
             const rows = document.querySelectorAll('#editableTimetable tr');
             let courses = [];
 
             rows.forEach(row => {
-                // 跳过表头行（第一个tr是表头）
                 if (row.querySelector('th')) return;
-
-                // 检查是否为正常课程行（应该有至少8个td：时间+7个课程）
                 const tds = row.querySelectorAll('td');
-                if (tds.length < 8) return; // 午休行或异常行
+                if (tds.length < 8) return;
 
-                // 解析时间
                 const timeCell = tds[0];
                 const timeText = timeCell.innerText || timeCell.textContent;
-                // 时间格式如 "第一节08:00-08:45" 或 "午休12:00-14:00"，这里只取时间部分
                 const timeMatch = timeText.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/);
-                if (!timeMatch) return; // 没有匹配到时间则跳过
+                if (!timeMatch) return;
 
                 const startStr = timeMatch[1];
                 const endStr = timeMatch[2];
 
-                // 获取对应列的课程单元格（列索引 = colIndex，因为第一个td是时间，所以课程单元格是 tds[colIndex]）
                 const courseCell = tds[colIndex];
                 if (!courseCell) return;
-                // 获取课程名（去除内部html标签，取纯文本）
                 let courseName = courseCell.innerText || courseCell.textContent;
                 courseName = courseName.replace(/\s+/g, ' ').trim();
-                // 如果课程名为空或为 '-'，表示无课，跳过
                 if (!courseName || courseName === '-') return;
 
-                // 将时间字符串转换为今天的分钟数
                 const startParts = startStr.split(':').map(Number);
                 const startMinutes = startParts[0] * 60 + startParts[1];
                 const endParts = endStr.split(':').map(Number);
@@ -1851,10 +2497,8 @@
                 });
             });
 
-            // 按开始时间排序
             courses.sort((a, b) => a.start - b.start);
 
-            // 找到下节课（第一个开始时间大于当前时间的课程）
             let nextCourse = null;
             for (let i = 0; i < courses.length; i++) {
                 if (courses[i].start > currentTimeInMinutes) {
@@ -1863,28 +2507,21 @@
                 }
             }
 
-            if (!nextCourse) return; // 今天没有后续课程
+            if (!nextCourse) return;
 
-            // 计算距离下节课开始还有多少分钟
             const timeDiff = nextCourse.start - currentTimeInMinutes;
 
-            // 如果距离开始小于等于2分钟且大于0分钟，触发提醒（避免上课后提醒）
             if (timeDiff > 0 && timeDiff <= 2) {
-                // 构造唯一标识，避免重复提醒同一节课
                 const reminderKey = `${dayOfWeek}_${nextCourse.start}_${nextCourse.name}`;
-                if (lastRemindedKey === reminderKey) return; // 已经提醒过这节课
+                if (lastRemindedKey === reminderKey) return;
 
-                // 显示提醒
                 nextCourseNameEl.textContent = nextCourse.name;
                 nextCourseTimeEl.textContent = `${nextCourse.startStr} - ${nextCourse.endStr}`;
                 reminderOverlay.style.display = 'flex';
 
-                // 记录已提醒
                 lastRemindedKey = reminderKey;
 
-                // 清除之前的隐藏定时器
                 if (reminderTimeout) clearTimeout(reminderTimeout);
-                // 5秒后自动隐藏
                 reminderTimeout = setTimeout(() => {
                     reminderOverlay.style.display = 'none';
                     reminderTimeout = null;
@@ -1939,7 +2576,6 @@
             });
         }
 
-        // 为现有可编辑单元格添加点击事件
         document.querySelectorAll('.editable').forEach(cell => {
             cell.addEventListener('click', () => {
                 if (isEditing && courseEditModal) {
@@ -1997,12 +2633,12 @@
             const timetable = document.getElementById('editableTimetable');
             const newRow = document.createElement('tr');
             newRow.id = `timeRow${rowCounter}`;
-            
+
             const timeCell = document.createElement('td');
             timeCell.className = 'time-slot';
             timeCell.innerHTML = `${slotName}<br>${slotRange}`;
             newRow.appendChild(timeCell);
-            
+
             for (let i = 1; i <= 7; i++) {
                 const cell = document.createElement('td');
                 cell.className = 'editable';
@@ -2019,7 +2655,7 @@
                 });
                 newRow.appendChild(cell);
             }
-            
+
             const noonRow = document.getElementById('timeRow5');
             if (noonRow) {
                 noonRow.parentNode.insertBefore(newRow, noonRow.nextSibling);
@@ -2050,7 +2686,8 @@
             }
             const average = (total / scores.length).toFixed(2);
             let level = average >= 90 ? '优秀' : average >= 80 ? '良好' : average >= 70 ? '中等' : average >= 60 ? '及格' : '不及格';
-            document.getElementById('scoreResult').textContent = `共计算 ${scores.length} 科成绩：\n总分：${total} 分\n平均分：${average} 分\n综合评级：${level}`;
+            document.getElementById('scoreResult').textContent =
+                `共计算 ${scores.length} 科成绩：\n总分：${total} 分\n平均分：${average} 分\n综合评级：${level}`;
             showToast('成绩计算完成！');
         }
 
@@ -2120,7 +2757,8 @@
             const memos = JSON.parse(localStorage.getItem('gyez_memo_data') || '[]');
             memoList.innerHTML = '';
             if (memos.length === 0) {
-                memoList.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">暂无备忘录，请添加</div>';
+                memoList.innerHTML =
+                    '<div style="text-align:center; color:#666; padding:20px;">暂无备忘录，请添加</div>';
                 return;
             }
             memos.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -2205,7 +2843,7 @@
 
         function playWarningSound() {
             try {
-                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const context = new(window.AudioContext || window.webkitAudioContext)();
                 const oscillator = context.createOscillator();
                 const gainNode = context.createGain();
                 oscillator.connect(gainNode);
@@ -2224,7 +2862,7 @@
         function startDecibelDetection() {
             if (isDetecting) return;
             try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioContext = new(window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
@@ -2289,17 +2927,18 @@
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            document.getElementById('countdown-result').textContent = `${title} 还有：${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+            document.getElementById('countdown-result').textContent =
+                `${title} 还有：${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
         }
 
-        // ---------- 知识点查询（详细版）----------
+        // ---------- 知识点查询 ----------
         const knowledgeDatabase = {
             chinese: {
                 name: '语文',
                 chapters: [
-                    { 
-                        id: 'ch1', 
-                        name: '必修一 - 现代文阅读', 
+                    {
+                        id: 'ch1',
+                        name: '必修一 - 现代文阅读',
                         content: '<h4>现代文阅读技巧</h4><ul>' +
                             '<li><strong>理解文中重要词语的含义</strong><br>词语在语境中的特定含义，包括指代义、比喻义、隐含义等。需结合上下文推断。</li>' +
                             '<li><strong>理解文中重要句子的含意</strong><br>把握句子的表层意思和深层含意，如哲理句、含蓄句、结构复杂句等。</li>' +
@@ -2307,168 +2946,168 @@
                             '<li><strong>分析文章结构，把握文章思路</strong><br>理清文章的层次、段落关系，把握作者的行文线索。</li>' +
                             '<li><strong>归纳内容要点，概括中心意思</strong><br>提炼文章的主要内容，概括作者的主要观点或情感。</li>' +
                             '<li><strong>分析概括作者在文中的观点态度</strong><br>体会作者在文中的立场、情感倾向，并加以概括。</li>' +
-                        '</ul>'
+                            '</ul>'
                     },
-                    { 
-                        id: 'ch2', 
-                        name: '必修二 - 古代诗歌鉴赏', 
+                    {
+                        id: 'ch2',
+                        name: '必修二 - 古代诗歌鉴赏',
                         content: '<h4>古代诗歌鉴赏方法</h4><ul>' +
-                            '<li><strong>把握诗歌的意象</strong><br>意象是诗人借以表达情感的物象，如“月”表思乡，“柳”表离别。需积累常见意象。</li>' +
+                            '<li><strong>把握诗歌的意象</strong><br>意象是诗人借以表达情感的物象，如"月"表思乡，"柳"表离别。需积累常见意象。</li>' +
                             '<li><strong>品味诗歌的语言</strong><br>炼字、诗眼、语言风格（清新、质朴、含蓄等）。</li>' +
                             '<li><strong>分析诗歌的表达技巧</strong><br>包括修辞手法（比喻、拟人）、表现手法（借景抒情、托物言志）、结构技巧（铺垫、照应）等。</li>' +
                             '<li><strong>理解诗歌的思想情感</strong><br>通过意象、典故等体会诗人所表达的情感，如爱国、思乡、怀才不遇等。</li>' +
                             '<li><strong>常见题材：送别诗、山水田园诗、边塞诗等</strong><br>不同题材有常见情感和手法，如送别诗多表达离愁别绪。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             math: {
                 name: '数学',
                 chapters: [
-                    { 
-                        id: 'm1', 
-                        name: '必修一 - 集合与函数', 
+                    {
+                        id: 'm1',
+                        name: '必修一 - 集合与函数',
                         content: '<h4>集合与函数</h4><ul>' +
                             '<li><strong>集合的基本概念与运算</strong><br>集合是由一些确定的对象组成的整体。元素与集合的关系、集合的表示法（列举法、描述法）。集合的关系：子集、真子集、相等。集合的运算：并集、交集、补集、全集。</li>' +
                             '<li><strong>函数的概念、定义域、值域</strong><br>函数是从非空数集到非空数集的映射。定义域是自变量的取值范围，值域是因变量的取值范围。求定义域需考虑分母、偶次根式、对数真数等限制。</li>' +
                             '<li><strong>函数的单调性、奇偶性</strong><br>单调性：在区间内任意x1<x2，有f(x1)<f(x2)则为增，反之为减。奇偶性：f(-x)=-f(x)为奇函数（图像关于原点对称），f(-x)=f(x)为偶函数（关于y轴对称）。</li>' +
                             '<li><strong>一次函数、二次函数</strong><br>一次函数y=kx+b，k为斜率，b为截距。二次函数y=ax²+bx+c，a决定开口方向，顶点、对称轴、最值。</li>' +
                             '<li><strong>指数函数、对数函数</strong><br>指数函数y=a^x (a>0,a≠1)，图像过(0,1)，a>1时递增，0<a<1时递减。对数函数y=log_a x (a>0,a≠1)，定义域x>0，图像过(1,0)，性质与指数函数互为反函数。</li>' +
-                        '</ul>'
+                            '</ul>'
                     },
-                    { 
-                        id: 'm2', 
-                        name: '必修二 - 立体几何', 
+                    {
+                        id: 'm2',
+                        name: '必修二 - 立体几何',
                         content: '<h4>立体几何</h4><ul>' +
                             '<li><strong>空间几何体的结构</strong><br>柱、锥、台、球的结构特征，如棱柱的侧面是平行四边形，棱锥的侧面是三角形。</li>' +
-                            '<li><strong>三视图与直观图</strong><br>三视图：正视图、侧视图、俯视图，遵循“长对正、高平齐、宽相等”。直观图常用斜二测画法。</li>' +
+                            '<li><strong>三视图与直观图</strong><br>三视图：正视图、侧视图、俯视图，遵循"长对正、高平齐、宽相等"。直观图常用斜二测画法。</li>' +
                             '<li><strong>表面积与体积计算</strong><br>柱体体积V=Sh，锥体V=1/3 Sh，球体V=4/3 πR³，表面积公式需熟记。</li>' +
                             '<li><strong>点、线、面的位置关系</strong><br>点与线、点与面、线与线（平行、相交、异面）、线与面（平行、相交、在面内）、面与面（平行、相交）。</li>' +
                             '<li><strong>平行与垂直的判定与性质</strong><br>线面平行判定：平面外一条直线与平面内一条直线平行，则线面平行。线面垂直判定：直线垂直于平面内两条相交直线。面面垂直判定：一个平面过另一个平面的垂线。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             english: {
                 name: '英语',
                 chapters: [
-                    { 
-                        id: 'e1', 
-                        name: '必修一 - 语法基础', 
+                    {
+                        id: 'e1',
+                        name: '必修一 - 语法基础',
                         content: '<h4>语法基础</h4><ul>' +
                             '<li><strong>时态：一般现在、一般过去、一般将来</strong><br>一般现在表经常性或客观事实，一般过去表过去动作，一般将来表将来动作（will/shall+动词原形）。</li>' +
                             '<li><strong>现在进行时、过去进行时</strong><br>现在进行时（am/is/are+doing）表现在正在进行的动作，过去进行时（was/were+doing）表过去某时刻正在进行的动作。</li>' +
                             '<li><strong>名词性从句</strong><br>包括主语从句、宾语从句、表语从句、同位语从句。由that, whether, 疑问词引导。</li>' +
                             '<li><strong>定语从句</strong><br>由关系代词（who, whom, which, that, whose）或关系副词（when, where, why）引导，修饰先行词。</li>' +
                             '<li><strong>非谓语动词</strong><br>动词不定式、动名词、分词（现在分词、过去分词）在句中充当除谓语以外的成分。</li>' +
-                        '</ul>'
+                            '</ul>'
                     },
-                    { 
-                        id: 'e2', 
-                        name: '必修二 - 阅读理解', 
+                    {
+                        id: 'e2',
+                        name: '必修二 - 阅读理解',
                         content: '<h4>阅读理解技巧</h4><ul>' +
                             '<li><strong>主旨大意题</strong><br>概括文章或段落中心思想，常考首尾段、首尾句，注意标题、主题句。</li>' +
                             '<li><strong>细节理解题</strong><br>从文中直接找到信息，注意定位关键词，排除干扰项。</li>' +
                             '<li><strong>推理判断题</strong><br>根据文章内容推断隐含意义，不可过度推断，需基于原文。</li>' +
                             '<li><strong>词义猜测题</strong><br>利用上下文、定义、举例、同义反义猜测生词含义。</li>' +
                             '<li><strong>阅读策略：略读、扫读、细读</strong><br>略读抓大意，扫读找细节，细读理解复杂信息。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             physics: {
                 name: '物理',
                 chapters: [
-                    { 
-                        id: 'p1', 
-                        name: '必修一 - 运动学', 
+                    {
+                        id: 'p1',
+                        name: '必修一 - 运动学',
                         content: '<h4>运动学</h4><ul>' +
                             '<li><strong>质点、参考系</strong><br>质点：忽略形状大小，只有质量的点。参考系：描述运动时选作标准的物体。</li>' +
                             '<li><strong>位移、速度、加速度</strong><br>位移是矢量，表示位置变化。速度是位移变化率，加速度是速度变化率。</li>' +
                             '<li><strong>匀变速直线运动公式</strong><br>v=v₀+at，x=v₀t+½at²，v²-v₀²=2ax。自由落体为初速0、a=g的匀加速。</li>' +
                             '<li><strong>自由落体运动</strong><br>只受重力，v=gt，h=½gt²，v²=2gh。</li>' +
                             '<li><strong>运动图像分析</strong><br>x-t图斜率表示速度，v-t图斜率表示加速度，面积表示位移。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             chemistry: {
                 name: '化学',
                 chapters: [
-                    { 
-                        id: 'c1', 
-                        name: '必修一 - 化学实验基础', 
+                    {
+                        id: 'c1',
+                        name: '必修一 - 化学实验基础',
                         content: '<h4>化学实验基础</h4><ul>' +
                             '<li><strong>常用仪器使用</strong><br>试管、烧杯、量筒、酒精灯、漏斗、蒸发皿等，用途及注意事项。</li>' +
                             '<li><strong>药品取用规则</strong><br>固体用药匙，液体用滴管或倾倒，不能直接接触药品，注意安全。</li>' +
-                            '<li><strong>加热、过滤、蒸发操作</strong><br>加热用外焰，过滤“一贴二低三靠”，蒸发用玻璃棒搅拌防飞溅。</li>' +
+                            '<li><strong>加热、过滤、蒸发操作</strong><br>加热用外焰，过滤"一贴二低三靠"，蒸发用玻璃棒搅拌防飞溅。</li>' +
                             '<li><strong>物质的分离与提纯</strong><br>过滤（固液）、蒸发（可溶性固体）、蒸馏（沸点不同）、萃取（溶解度不同）。</li>' +
                             '<li><strong>常见气体的制备</strong><br>如O₂（加热KMnO₄或H₂O₂加MnO₂）、CO₂（石灰石+盐酸）、H₂（锌+稀硫酸）。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             biology: {
                 name: '生物',
                 chapters: [
-                    { 
-                        id: 'b1', 
-                        name: '必修一 - 细胞的分子组成', 
+                    {
+                        id: 'b1',
+                        name: '必修一 - 细胞的分子组成',
                         content: '<h4>细胞的分子组成</h4><ul>' +
                             '<li><strong>蛋白质的结构与功能</strong><br>基本单位是氨基酸，通过脱水缩合形成肽链。蛋白质功能：催化（酶）、运输（血红蛋白）、免疫（抗体）、调节（激素）等。</li>' +
                             '<li><strong>核酸的种类与作用</strong><br>DNA（遗传物质）和RNA（参与蛋白质合成）。核苷酸是基本单位。</li>' +
                             '<li><strong>糖类的种类与功能</strong><br>单糖（葡萄糖、果糖）、二糖（蔗糖、麦芽糖）、多糖（淀粉、糖原、纤维素）。主要能源物质。</li>' +
                             '<li><strong>脂质的种类与功能</strong><br>脂肪（储能、保温）、磷脂（生物膜成分）、固醇（性激素、胆固醇、维生素D）。</li>' +
                             '<li><strong>水和无机盐的作用</strong><br>水是良好溶剂，参与反应；无机盐维持渗透压、酸碱平衡，构成化合物。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             history: {
                 name: '历史',
                 chapters: [
-                    { 
-                        id: 'h1', 
-                        name: '必修一 - 中国古代政治制度', 
+                    {
+                        id: 'h1',
+                        name: '必修一 - 中国古代政治制度',
                         content: '<h4>中国古代政治制度</h4><ul>' +
                             '<li><strong>早期政治制度：分封制、宗法制</strong><br>分封制：周王分封诸侯，以藩屏周。宗法制：嫡长子继承制，维系宗族。</li>' +
                             '<li><strong>秦朝中央集权制度</strong><br>皇帝制、三公九卿制、郡县制，奠定两千多年政治格局。</li>' +
                             '<li><strong>汉至元政治制度的演变</strong><br>汉：中外朝；隋唐：三省六部制；宋：二府三司；元：行省制。</li>' +
                             '<li><strong>明清君主专制的加强</strong><br>明：废丞相、设内阁；清：军机处，君主专制达到顶峰。</li>' +
                             '<li><strong>选官制度的演变</strong><br>世官制→察举制→九品中正制→科举制，科举制影响深远。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             politics: {
                 name: '政治',
                 chapters: [
-                    { 
-                        id: 'po1', 
-                        name: '必修一 - 经济生活', 
+                    {
+                        id: 'po1',
+                        name: '必修一 - 经济生活',
                         content: '<h4>经济生活</h4><ul>' +
                             '<li><strong>货币的本质与职能</strong><br>货币是从商品中分离出来的固定充当一般等价物的商品。职能：价值尺度、流通手段、支付手段、贮藏手段、世界货币。</li>' +
                             '<li><strong>价格的决定与变动</strong><br>价值决定价格，供求影响价格。价格变动影响需求与生产。</li>' +
                             '<li><strong>消费及其类型</strong><br>影响消费的因素：收入、物价、消费心理。消费类型：生存资料、发展资料、享受资料。</li>' +
                             '<li><strong>生产与经济制度</strong><br>生产决定消费，消费反作用于生产。我国基本经济制度：公有制为主体、多种所有制共同发展。</li>' +
                             '<li><strong>企业与劳动者</strong><br>企业是市场经济活动的主要参与者，公司制是现代企业主要形式。劳动者有平等就业、取得报酬等权利。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             },
             geography: {
                 name: '地理',
                 chapters: [
-                    { 
-                        id: 'g1', 
-                        name: '必修一 - 宇宙中的地球', 
+                    {
+                        id: 'g1',
+                        name: '必修一 - 宇宙中的地球',
                         content: '<h4>宇宙中的地球</h4><ul>' +
                             '<li><strong>地球的宇宙环境</strong><br>天体系统层次：地月系→太阳系→银河系→总星系。太阳系八大行星。</li>' +
                             '<li><strong>太阳对地球的影响</strong><br>太阳辐射为地球提供能量，太阳活动（黑子、耀斑）影响无线电短波通信、产生磁暴。</li>' +
                             '<li><strong>地球的运动（自转与公转）</strong><br>自转产生昼夜交替、地方时，公转产生四季、五带。黄赤交角存在导致太阳直射点移动。</li>' +
                             '<li><strong>地球的圈层结构</strong><br>内部：地壳、地幔、地核；外部：大气圈、水圈、生物圈。</li>' +
                             '<li><strong>地球的演化</strong><br>地质年代：太古代、元古代、古生代、中生代、新生代，生物进化历程。</li>' +
-                        '</ul>'
+                            '</ul>'
                     }
                 ]
             }
@@ -2535,7 +3174,6 @@
             });
         }
 
-        // 点击弹窗外部关闭
         window.addEventListener('click', (e) => {
             document.querySelectorAll('.edit-modal').forEach(modal => {
                 if (e.target === modal) closeEditModal();
@@ -2556,8 +3194,120 @@
 
         // ---------- 简易提示函数 ----------
         function showToast(message, type = 'info') {
-            alert(message); // 简单用alert代替，可根据需要改为更美观的提示
+            alert(message);
         }
+
+        // ==================== AI 助手功能（直接调用 DeepSeek API） ====================
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendChatBtn');
+        const chatLoading = document.getElementById('chatLoading');
+        const API_URL = 'https://api.deepseek.com/chat/completions';
+
+        // 添加一条消息到聊天框
+        function appendMessage(role, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.style.marginBottom = '12px';
+            msgDiv.style.display = 'flex';
+            msgDiv.style.flexDirection = 'column';
+            msgDiv.style.alignItems = role === 'user' ? 'flex-end' : 'flex-start';
+            
+            const bubble = document.createElement('div');
+            bubble.style.maxWidth = '80%';
+            bubble.style.padding = '10px 14px';
+            bubble.style.borderRadius = '18px';
+            bubble.style.wordWrap = 'break-word';
+            bubble.style.whiteSpace = 'pre-wrap';
+            if (role === 'user') {
+                bubble.style.backgroundColor = '#005aa7';
+                bubble.style.color = 'white';
+                bubble.style.borderBottomRightRadius = '4px';
+            } else {
+                bubble.style.backgroundColor = '#e6f0fa';
+                bubble.style.color = '#1e2a3a';
+                bubble.style.borderBottomLeftRadius = '4px';
+                // 如果当前是夜间模式，覆盖颜色
+                if (document.body.classList.contains('night-mode')) {
+                    bubble.style.backgroundColor = '#2a3040';
+                    bubble.style.color = '#e0e0e0';
+                }
+            }
+            bubble.textContent = text;
+            msgDiv.appendChild(bubble);
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 更新聊天气泡的夜间模式样式（用于切换后重绘）
+        function updateChatBubblesForNightMode() {
+            const isNight = document.body.classList.contains('night-mode');
+            document.querySelectorAll('#chatMessages div > div').forEach(bubble => {
+                // 找到助手的气泡（背景色为 #e6f0fa 或 rgb(230,240,250) 的）
+                const bg = window.getComputedStyle(bubble).backgroundColor;
+                if (bg === 'rgb(230, 240, 250)' || bg === '#e6f0fa' || bg === 'rgb(230, 240, 250)') {
+                    bubble.style.backgroundColor = isNight ? '#2a3040' : '#e6f0fa';
+                    bubble.style.color = isNight ? '#e0e0e0' : '#1e2a3a';
+                }
+            });
+        }
+
+        // 发送消息到 DeepSeek
+        async function sendMessageToAI() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            if (DEEPSEEK_API_KEY === 'YOUR_API_KEY_HERE') {
+                appendMessage('assistant', '❌ 请先在代码中设置您的 DeepSeek API Key！（找到 DEEPSEEK_API_KEY 变量）');
+                return;
+            }
+            // 清空输入框，添加用户消息
+            chatInput.value = '';
+            appendMessage('user', message);
+            chatLoading.style.display = 'block';
+            sendBtn.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-v4-pro',
+                        messages: [
+                            { role: 'system', content: '你是一个乐于助人的校园学习助手，名叫“校园小助手”。回答应简洁、友好，适合高中生，尽量使用中文。' },
+                            { role: 'user', content: message }
+                        ],
+                        stream: false,
+                        max_tokens: 800,
+                        temperature: 0.7
+                    })
+                });
+                const data = await response.json();
+                if (response.ok && data.choices && data.choices[0]) {
+                    const reply = data.choices[0].message.content;
+                    appendMessage('assistant', reply);
+                } else {
+                    const errorMsg = data.error?.message || '未知错误';
+                    console.error('API 错误:', errorMsg);
+                    appendMessage('assistant', `❌ 出错啦：${errorMsg}\n\n请检查 API Key 是否正确，或稍后再试。`);
+                }
+            } catch (err) {
+                console.error('网络错误:', err);
+                appendMessage('assistant', '⚠️ 网络请求失败，请检查网络连接后重试。');
+            } finally {
+                chatLoading.style.display = 'none';
+                sendBtn.disabled = false;
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessageToAI);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessageToAI();
+            }
+        });
     </script>
 </body>
 </html>
